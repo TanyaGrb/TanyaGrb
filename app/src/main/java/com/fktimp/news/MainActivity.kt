@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestWall() {
-        VK.execute(VKWallsRequest(-50246288), object : VKApiCallback<List<VKWall>> {
+        VK.execute(VKWallsRequest(-50246288,5), object : VKApiCallback<List<VKWall>> {
             override fun fail(error: VKApiExecutionException) {
                 Toast.makeText(applicationContext, error.message, Toast.LENGTH_LONG).show()
                 messageET.setText(error.message)
@@ -34,8 +34,11 @@ class MainActivity : AppCompatActivity() {
 
             override fun success(result: List<VKWall>) {
                 if (!isFinishing && result.isNotEmpty()) {
-//                    messageET.setText("${result.get(0).count}")
-                    messageET.setText(result[0].items[0].text)
+                    var string = ""
+                    if (result.isNotEmpty())
+                        for (i in 0 until result[0].items.size)
+                            string += "$i) ${result[0].items[i].text}\n \n"
+                    messageET.setText(string)
                 }
             }
         })
