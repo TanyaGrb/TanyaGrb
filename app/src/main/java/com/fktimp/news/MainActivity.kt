@@ -1,72 +1,43 @@
 package com.fktimp.news
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.fktimp.news.adapters.OnLoadMoreListener
-import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
-import com.fktimp.news.adapters.WallAdapter
-import com.fktimp.news.models.VKWallPost
-import com.fktimp.news.requests.NewsHelper
+import com.fktimp.news.models.VKWall
+import com.fktimp.news.requests.VKWallsRequest
+import com.vk.api.sdk.VK
+import com.vk.api.sdk.VKApiCallback
+import com.vk.api.sdk.exceptions.VKApiExecutionException
 import kotlinx.android.synthetic.main.activity_main.*
 
-
 class MainActivity : AppCompatActivity() {
-
-    val wallPosts: ArrayList<VKWallPost> = ArrayList()
-    lateinit var adapter: WallAdapter
-    lateinit var scrollListener: RecyclerViewLoadMoreScroll
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
-        initRecycler()
+        VK.setCredentials(
+            this,
+            7273146,
+            "85a7c4e485a7c4e485a7c4e4f285c93e5e885a785a7c4e4dbb3670b90806f21f42228bf",
+            null,
+            false
+        )
+        button.setOnClickListener { requestWall() }
     }
 
+    private fun requestWall() {
+        VK.execute(VKWallsRequest(-50246288), object : VKApiCallback<List<VKWall>> {
+            override fun fail(error: VKApiExecutionException) {
+                Toast.makeText(applicationContext, error.message, Toast.LENGTH_LONG).show()
+                messageET.setText(error.message)
+            }
 
-    private fun initRecycler() {
-        wallPosts.add(VKWallPost())
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = WallAdapter(this, wallPosts)
-        recyclerView.adapter = adapter
-        val linearLayoutManager =
-            recyclerView.layoutManager as LinearLayoutManager?
-
-
-        scrollListener = RecyclerViewLoadMoreScroll(linearLayoutManager as LinearLayoutManager)
-        scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
-            override fun onLoadMore() {
-                wallPosts.add(VKWallPost())
-                adapter.notifyItemInserted(wallPosts.size - 1)
-                NewsHelper.getData(this@MainActivity)
+            override fun success(result: List<VKWall>) {
+                if (!isFinishing && result.isNotEmpty()) {
+//                    messageET.setText("${result.get(0).count}")
+                    messageET.setText(result[0].items[0].text)
+                }
             }
         })
-        recyclerView.addOnScrollListener(scrollListener)
-        NewsHelper.getData(this)
-    }
-
-    fun updateRecycler(items: ArrayList<VKWallPost>) {
-        deleteLoading()
-        val startPos = wallPosts.size
-        wallPosts.addAll(items)
-        adapter.notifyItemRangeInserted(startPos, items.size)
-    }
-
-    fun deleteLoading() {
-        wallPosts.removeAt(wallPosts.size - 1)
-        adapter.notifyItemRemoved(wallPosts.size)
-        scrollListener.setLoaded()
-    }
-
-
-    companion object {
-        fun startFrom(context: Context) {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
-        }
     }
 }
