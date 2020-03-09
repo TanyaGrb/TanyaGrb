@@ -3,12 +3,17 @@ package com.fktimp.news
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.fktimp.news.adapters.WallAdapter
+import com.fktimp.news.interfaces.ILoadMore
 import com.fktimp.news.models.VKWall
+import com.fktimp.news.models.VKWallPost
 import com.fktimp.news.requests.VKWallsRequest
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
 import com.vk.api.sdk.exceptions.VKApiExecutionException
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,25 +27,36 @@ class MainActivity : AppCompatActivity() {
             null,
             false
         )
-        button.setOnClickListener { requestWall() }
+        button.setOnClickListener { requestWall(-50246288, 30) }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
     }
 
-    private fun requestWall() {
-        VK.execute(VKWallsRequest(-50246288,5), object : VKApiCallback<List<VKWall>> {
+    private fun requestWall(id: Int, count: Int) {
+        VK.execute(VKWallsRequest(id, count), object : VKApiCallback<List<VKWall>> {
             override fun fail(error: VKApiExecutionException) {
                 Toast.makeText(applicationContext, error.message, Toast.LENGTH_LONG).show()
-                messageET.setText(error.message)
             }
 
             override fun success(result: List<VKWall>) {
-                if (!isFinishing && result.isNotEmpty()) {
-                    var string = ""
-                    if (result.isNotEmpty())
-                        for (i in 0 until result[0].items.size)
-                            string += "$i) ${result[0].items[i].text}\n \n"
-                    messageET.setText(string)
-                }
+                if (!isFinishing && result.isNotEmpty())
+                    initRecycler(ArrayList(result[0].items))
             }
         })
     }
+
+    fun initRecycler(items: ArrayList<VKWallPost?>) {
+        val adapter = WallAdapter(recyclerView, this, items)
+        recyclerView.adapter = adapter
+        adapter.loadMore = object : ILoadMore {
+            override fun onLoadMore() {
+                Toast.makeText(applicationContext, "OnLoadMore", Toast.LENGTH_SHORT).show()
+                adapter.setLoaded()
+                items.add(null)
+                adapter.notifyItemInserted(items.size - 1)
+            }
+        }
+    }
+
 }

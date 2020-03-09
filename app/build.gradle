@@ -34,11 +34,11 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     // __
-//    implementation 'com.vk:androidsdk:1.6.5'
     implementation 'com.vk:androidsdk:2.1.1'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'com.google.code.gson:gson:2.8.6'
+    implementation "androidx.cardview:cardview:1.0.0"
 
 
 }
