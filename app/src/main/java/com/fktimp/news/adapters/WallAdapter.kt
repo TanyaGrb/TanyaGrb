@@ -1,5 +1,6 @@
 package com.fktimp.news.adapters
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.fktimp.news.R
 import com.fktimp.news.interfaces.ILoadMore
 import com.fktimp.news.models.VKWallPost
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 internal class LoadingViewHolder(itemView: View) : ViewHolder(itemView) {
@@ -94,15 +97,22 @@ class WallAdapter(
     override fun getItemCount(): Int = items.size
 
 
+    @SuppressLint("SimpleDateFormat")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         if (holder is ItemViewHolder) {
             val post: VKWallPost? = items[position]
-            holder.data.text = ("${post?.date}")
+            val time = post?.date ?: 0
+            val date = Date( time * 1000L)
+            val jdf = SimpleDateFormat("dd MMMM HH:mm")
+
+            holder.data.text = (jdf.format(date))
             holder.text.text = (post?.text)
         } else if (holder is LoadingViewHolder) {
             holder.progressBar.isIndeterminate = true
         }
     }
+
+
 
     fun setLoaded() {
         isLoading = false

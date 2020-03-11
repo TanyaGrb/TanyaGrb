@@ -27,10 +27,8 @@ class MainActivity : AppCompatActivity() {
             null,
             false
         )
-        button.setOnClickListener { requestWall(-50246288, 30) }
-
+        button.setOnClickListener { requestWall(-940543, 15) }
         recyclerView.layoutManager = LinearLayoutManager(this)
-
     }
 
     private fun requestWall(id: Int, count: Int) {
