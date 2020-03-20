@@ -1,5 +1,9 @@
 package com.fktimp.news.models
 
+data class VKExecuteWallModel(
+    val wall: ArrayList<VKWallPost> = ArrayList(),
+    val extra: Int = 0
+)
 
 data class VKWallPost(
     val id: Int = 0,
@@ -8,6 +12,7 @@ data class VKWallPost(
     val text: String = "",
     val reply_post_id: Int = 0
 )
+
 
 data class VKWall(
     val count: Int = 0,
