@@ -3,7 +3,7 @@ package com.fktimp.news.requests
 import android.content.Context
 import android.widget.Toast
 import com.fktimp.news.MainActivity
-import com.fktimp.news.models.VKExecuteWallModel
+import com.fktimp.news.models.VKNewsModel
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
 import com.vk.api.sdk.exceptions.VKApiExecutionException
@@ -11,10 +11,14 @@ import com.vk.api.sdk.exceptions.VKApiExecutionException
 
 object NewsHelper {
     const val SOURCE_SET = "string_set_key"
+    const val STOP = "STOP_CONST"
+    //    private val defaultSources =
+//        arrayOf("-50246288", "-45715576", "-27775663", "-181445782", "-35684557")
     private val defaultSources =
-        arrayOf("-50246288", "-45715576", "-27775663", "-181445782", "-35684557")
+        arrayOf("-192270804", "-28905875", "-192270812")
     lateinit var actualSources: Set<String>
     lateinit var offsets: Map<String, Int>
+    var next_from: String = ""
 
 
     fun saveDefaultSources(context: Context) {
@@ -58,57 +62,22 @@ object NewsHelper {
 
 
     fun getData(context: Context) {
-        VK.execute(VKExecuteWall(getCode(15)), object : VKApiCallback<VKExecuteWallModel> {
+        if (next_from == STOP) {
+            Toast.makeText(context, "Новостей больше нет", Toast.LENGTH_SHORT).show()
+            (context as MainActivity).deleteLoading()
+            return
+        }
+        VK.execute(
+            VKNewsRequest(defaultSources.joinToString(", "), 15, next_from),
+            object : VKApiCallback<VKNewsModel> {
             override fun fail(error: VKApiExecutionException) {
                 Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
             }
 
-            override fun success(result: VKExecuteWallModel) {
-                (context as MainActivity).updateRecycler(result.wall)
+                override fun success(result: VKNewsModel) {
+                    (context as MainActivity).updateRecycler(result.items)
+                    next_from = result.next_from ?: STOP
             }
         })
     }
-
-    private fun getCode(count: Int): String {
-
-        val result: StringBuffer = StringBuffer()
-
-        for ((index, element) in actualSources.withIndex()) {
-            result.append("var post$index = API.wall.get({\"owner_id\": $element, \"count\": $count});\n")
-        }
-        result.append("var allItems = ")
-        for (index in actualSources.indices) {
-            result.append("post$index.items +")
-        }
-        result.replace(result.length - 1, result.length, ";\n")
-        result.append(SORTING)
-        result.append("return {\"wall\": allItems.slice(0,$count), \"extra\":45};")
-        println(result.toString().trim())
-        return result.toString().trim()
-
-//        return """var posts1 = API.wall.get({"count": $count});
-//            var posts2 = API.wall.get({"owner_id":"1","count":$count});
-//            var allItems = posts1.items + posts2.items;
-//            var i = 0;
-//            var len = allItems.length;
-//            while (i < len){
-//                var j = 0;
-//                while (j < len - i - 1){
-//                    if (allItems[j].date <= allItems[j + 1].date){
-//                        var temp = allItems[j];
-//                        allItems.splice(j, 1, allItems[j+1]);
-//                        allItems.splice(j + 1, 1, temp);
-//                    }
-//                    j = j + 1;
-//                }
-//                i = i + 1;
-//            }
-//            return {"wall": allItems.slice(0,$count), "extra":45};""".trim()
-    }
-
-    const val SORTING =
-        "var i = 0; var len = allItems.length; while (i < len){ var j = 0; while (j < len - i - 1)" +
-                "{ if (allItems[j].date <= allItems[j + 1].date){ var temp = allItems[j]; " +
-                "allItems.splice(j, 1, allItems[j+1]); allItems.splice(j + 1, 1, temp);} " +
-                "j = j + 1;} i = i + 1;}"
 }
