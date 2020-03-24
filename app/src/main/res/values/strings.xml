@@ -7,4 +7,6 @@
     <string name="message_hint">Your message</string>
     <string name="wall_ok">Post has been published</string>
     <string name="request">request</string>
+    <string name="link">[club28905875|подали жалобу]</string>
+    <string name="link1"><a href="https://www.vk.com/id95516166">Google</a></string>
 </resources>

@@ -19,15 +19,14 @@ class MainActivity : AppCompatActivity() {
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
         initRecycler()
-        button.setOnClickListener {
-            //            requestWall(-940543, 15)
-        }
     }
+
 
     private fun initRecycler() {
         wallPosts.add(VKWallPost())

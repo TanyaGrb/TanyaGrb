@@ -15,7 +15,7 @@ object NewsHelper {
     //    private val defaultSources =
 //        arrayOf("-50246288", "-45715576", "-27775663", "-181445782", "-35684557")
     private val defaultSources =
-        arrayOf("-192270804", "-28905875", "-192270812")
+        arrayOf("-61559790", "-67531827", "-88384060", "-91150385", "-940543")
     lateinit var actualSources: Set<String>
     lateinit var offsets: Map<String, Int>
     var next_from: String = ""
@@ -70,14 +70,14 @@ object NewsHelper {
         VK.execute(
             VKNewsRequest(defaultSources.joinToString(", "), 15, next_from),
             object : VKApiCallback<VKNewsModel> {
-            override fun fail(error: VKApiExecutionException) {
-                Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
-            }
+                override fun fail(error: VKApiExecutionException) {
+                    Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
+                }
 
                 override fun success(result: VKNewsModel) {
                     (context as MainActivity).updateRecycler(result.items)
                     next_from = result.next_from ?: STOP
-            }
-        })
+                }
+            })
     }
 }
