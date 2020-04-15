@@ -3,11 +3,6 @@ package com.fktimp.news.adapters
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.method.LinkMovementMethod
-import android.text.method.MovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,13 +10,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.fktimp.news.CustomURLSpan
 import com.fktimp.news.R
+import com.fktimp.news.customAddLinks
 import com.fktimp.news.models.VKWallPost
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.regex.Pattern
-
 
 fun isPackageInstalled(
     packageName: String,
@@ -43,55 +36,6 @@ internal class LoadingViewHolder(itemView: View) : ViewHolder(itemView) {
 internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
     var date: TextView = itemView.findViewById<View>(R.id.date) as TextView
     var text: TextView = itemView.findViewById<View>(R.id.text) as TextView
-
-    fun customAddLinks(
-        text: TextView, isVK: Boolean
-    ) {
-        val url_start = if (isVK) "vk://profile/" else "http://vk.com/"
-        val pattern = Pattern.compile("""\[(club|id)\d+\|(\w|\s)+]""")
-        var spannable = SpannableStringBuilder.valueOf(text.text)
-        var m = pattern.matcher(spannable)
-        var flag = false
-        while (m.find()) {
-            var url = url_start
-            val start = m.start()
-            val end = m.end()
-            val result: String = m.group(0) ?: ""
-            val urlId = result.substring(1, result.indexOf("|"))
-            print(urlId)
-            url += if (isVK) {
-                if (urlId.contains("club")) urlId.replace(
-                    "club",
-                    "-"
-                ) else urlId.replace("id", "")
-            } else {
-                urlId
-            }
-            val txt: String = result.substring(result.indexOf("|") + 1, result.length - 1)
-            spannable = spannable.replace(start, end, txt)
-            m = pattern.matcher(spannable)
-            customApplyLink(url, start, start + txt.length, spannable)
-            flag = true
-        }
-        if (flag) {
-            text.text = spannable
-            val movementMethod: MovementMethod? = text.movementMethod
-            if (movementMethod == null || movementMethod !is LinkMovementMethod) {
-                if (text.linksClickable)
-                    text.movementMethod = LinkMovementMethod.getInstance()
-            }
-        }
-    }
-
-    private fun customApplyLink(
-        url: String,
-        start: Int,
-        end: Int,
-        text: Spannable
-    ) {
-        val span = CustomURLSpan(url)
-        text.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
 }
 
 class WallAdapter(
@@ -137,7 +81,7 @@ class WallAdapter(
 
             holder.date.text = jdf.format(date)
             holder.text.text = (post?.text)
-            holder.customAddLinks(holder.text, isVKExists)
+            customAddLinks(holder.text, isVKExists)
         } else if (holder is LoadingViewHolder) {
             holder.progressBar.isIndeterminate = true
         }
