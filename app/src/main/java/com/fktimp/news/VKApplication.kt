@@ -16,3 +16,7 @@ class VKApplication : Application() {
         }
     }
 }
+
+object VKState {
+    var isVKExist = true
+}

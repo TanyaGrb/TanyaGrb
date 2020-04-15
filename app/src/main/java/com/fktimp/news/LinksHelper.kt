@@ -27,13 +27,14 @@ class CustomURLSpan(url: String) : URLSpan(url) {
 
 @SuppressLint("RestrictedApi")
 fun customAddLinks(
-    text: TextView, isVKExists: Boolean
+    textView: TextView
 ) {
-    val spannable = SpannableStringBuilder.valueOf(text.text)
-    val patternVK = Pattern.compile("""\[(club|id)\d+\|(\w|\s)+]""")
+    val isVKExists = VKState.isVKExist
+    val spannable = SpannableStringBuilder.valueOf(textView.text)
+    val patternVK = Pattern.compile("""\[(club|id)\d+\|(.)+]""")
     val patternURL = AUTOLINK_WEB_URL
     val patternEmail = AUTOLINK_EMAIL_ADDRESS
-    val result = addLinksByPattern(spannable, patternVK, isVKExists, true, emptyArray()) or
+    val result = addLinksByPattern(spannable, patternVK, isVKExists, true, emptyArray())  //or
             addLinksByPattern(
                 spannable,
                 patternURL,
@@ -43,11 +44,11 @@ fun customAddLinks(
             ) or
             addLinksByPattern(spannable, patternEmail, isVKExists, false, arrayOf("mailto:"))
     if (result) {
-        text.text = spannable
-        val movementMethod: MovementMethod? = text.movementMethod
+        textView.text = spannable
+        val movementMethod: MovementMethod? = textView.movementMethod
         if (movementMethod == null || movementMethod !is LinkMovementMethod) {
-            if (text.linksClickable)
-                text.movementMethod = LinkMovementMethod.getInstance()
+            if (textView.linksClickable)
+                textView.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 }
@@ -74,11 +75,10 @@ fun addLinksByPattern(
     var m = pattern.matcher(spannable)
     var flag = false
     while (m.find()) {
-        var url = ""
         val start = m.start()
         val end = m.end()
         val result: String = m.group(0) ?: ""
-        url = if (isVK) {
+        val url = if (isVK) {
             getVKUrl(result.substring(1, result.indexOf("|")), isVKExists)
         } else {
             makeUrl(result, prefixes)

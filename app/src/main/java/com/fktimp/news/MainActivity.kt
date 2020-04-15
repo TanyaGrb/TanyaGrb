@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
         initRecycler()
+
+
     }
 
 

@@ -13,7 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.fktimp.news.R
-import com.fktimp.news.customAddLinks
+import com.fktimp.news.SeeMoreTextView
+import com.fktimp.news.VKState
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
 import java.text.SimpleDateFormat
@@ -38,7 +39,7 @@ internal class LoadingViewHolder(itemView: View) : ViewHolder(itemView) {
 
 internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
     var date: TextView = itemView.findViewById<View>(R.id.date) as TextView
-    var text: TextView = itemView.findViewById<View>(R.id.text) as TextView
+    var text: SeeMoreTextView = itemView.findViewById<View>(R.id.text) as SeeMoreTextView
     var title: TextView = itemView.findViewById<View>(R.id.title) as TextView
     var photo: ImageView = itemView.findViewById<View>(R.id.photo) as ImageView
 }
@@ -49,7 +50,9 @@ class WallAdapter(
     var groupsInfo: List<VKGroupModel>
 ) : RecyclerView.Adapter<ViewHolder>() {
 
-    private val isVKExists = isPackageInstalled(VK_APP_PACKAGE_ID, activity.packageManager)
+    init {
+        VKState.isVKExist = isPackageInstalled(VK_APP_PACKAGE_ID, activity.packageManager)
+    }
 
     override fun getItemViewType(position: Int): Int {
         return if (items[position]?.source_id == 0) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
@@ -86,8 +89,7 @@ class WallAdapter(
             val jdf = SimpleDateFormat("dd MMM HH:mm")
 
             holder.date.text = jdf.format(date)
-            holder.text.text = (wallPost?.text)
-            customAddLinks(holder.text, isVKExists)
+            holder.text.setContent(wallPost?.text)
             val currentGroup =
                 groupsInfo.find { it.id == kotlin.math.abs(wallPost?.source_id ?: 0) }
             holder.title.text = currentGroup?.name ?: "Unknown"
