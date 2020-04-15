@@ -1,16 +1,29 @@
 package com.fktimp.news
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
+import android.text.style.URLSpan
+import android.view.View
 import android.widget.TextView
 import androidx.core.util.PatternsCompat.AUTOLINK_EMAIL_ADDRESS
 import androidx.core.util.PatternsCompat.AUTOLINK_WEB_URL
 import java.util.regex.Pattern
 
+class CustomURLSpan(url: String) : URLSpan(url) {
+    override fun onClick(widget: View) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(url)
+        )
+        widget.context.startActivity(intent)
+    }
+}
 
 @SuppressLint("RestrictedApi")
 fun customAddLinks(

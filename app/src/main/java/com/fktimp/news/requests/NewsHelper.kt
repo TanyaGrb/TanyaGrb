@@ -6,16 +6,16 @@ import com.fktimp.news.MainActivity
 import com.fktimp.news.models.VKNewsModel
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
-import com.vk.api.sdk.exceptions.VKApiExecutionException
 
 
 object NewsHelper {
     const val SOURCE_SET = "string_set_key"
     const val STOP = "STOP_CONST"
+
     //    private val defaultSources =
 //        arrayOf("-50246288", "-45715576", "-27775663", "-181445782", "-35684557")
     private val defaultSources =
-        arrayOf("-61559790", "-67531827", "-88384060", "-91150385", "-940543")
+        arrayOf("-61559790", "-67531827", "-88384060", "-91150385", "-940543", "-192270804")
     lateinit var actualSources: Set<String>
     lateinit var offsets: Map<String, Int>
     var next_from: String = ""
@@ -70,12 +70,12 @@ object NewsHelper {
         VK.execute(
             VKNewsRequest(defaultSources.joinToString(", "), 15, next_from),
             object : VKApiCallback<VKNewsModel> {
-                override fun fail(error: VKApiExecutionException) {
+                override fun fail(error: Exception) {
                     Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
                 }
 
                 override fun success(result: VKNewsModel) {
-                    (context as MainActivity).updateRecycler(result.items)
+                    (context as MainActivity).updateRecycler(result.items, result.groups)
                     next_from = result.next_from ?: STOP
                 }
             })

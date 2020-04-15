@@ -8,14 +8,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.adapters.OnLoadMoreListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
-import com.fktimp.news.models.VKWallPost
+import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.requests.NewsHelper
 import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
 
-    val wallPosts: ArrayList<VKWallPost> = ArrayList()
+    val wallPosts: ArrayList<VKWallPostModel> = ArrayList()
+    val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
 
@@ -29,9 +31,9 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun initRecycler() {
-        wallPosts.add(VKWallPost())
+        wallPosts.add(VKWallPostModel())
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = WallAdapter(this, wallPosts)
+        adapter = WallAdapter(this, wallPosts, groupsInfo)
         recyclerView.adapter = adapter
         val linearLayoutManager =
             recyclerView.layoutManager as LinearLayoutManager?
@@ -40,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         scrollListener = RecyclerViewLoadMoreScroll(linearLayoutManager as LinearLayoutManager)
         scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
             override fun onLoadMore() {
-                wallPosts.add(VKWallPost())
+                wallPosts.add(VKWallPostModel())
                 adapter.notifyItemInserted(wallPosts.size - 1)
                 NewsHelper.getData(this@MainActivity)
             }
@@ -49,9 +51,11 @@ class MainActivity : AppCompatActivity() {
         NewsHelper.getData(this)
     }
 
-    fun updateRecycler(items: ArrayList<VKWallPost>) {
+    fun updateRecycler(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
         deleteLoading()
         val startPos = wallPosts.size
+        groupsInfo.addAll(groups)
+        groupsInfo.distinct()
         wallPosts.addAll(items)
         adapter.notifyItemRangeInserted(startPos, items.size)
     }
