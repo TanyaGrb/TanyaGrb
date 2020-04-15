@@ -26,7 +26,7 @@ class WelcomeActivity : Activity() {
             finish()
             return
         }
-        VK.login(this, arrayListOf(VKScope.WALL, VKScope.FRIENDS))
+        VK.login(this, arrayListOf(VKScope.WALL, VKScope.FRIENDS, VKScope.OFFLINE))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

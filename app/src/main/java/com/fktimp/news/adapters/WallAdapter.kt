@@ -2,6 +2,7 @@ package com.fktimp.news.adapters
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -22,6 +23,18 @@ import java.util.*
 import java.util.regex.Pattern
 
 
+fun isPackageInstalled(
+    packageName: String,
+    packageManager: PackageManager
+): Boolean {
+    return try {
+        packageManager.getPackageInfo(packageName, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
+}
+
 internal class LoadingViewHolder(itemView: View) : ViewHolder(itemView) {
     var progressBar: ProgressBar = itemView.findViewById(R.id.progressBar)
 }
@@ -32,20 +45,28 @@ internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
     var text: TextView = itemView.findViewById<View>(R.id.text) as TextView
 
     fun customAddLinks(
-        text: TextView
+        text: TextView, isVK: Boolean
     ) {
+        val url_start = if (isVK) "vk://profile/" else "http://vk.com/"
         val pattern = Pattern.compile("""\[(club|id)\d+\|(\w|\s)+]""")
         var spannable = SpannableStringBuilder.valueOf(text.text)
         var m = pattern.matcher(spannable)
         var flag = false
         while (m.find()) {
+            var url = url_start
             val start = m.start()
             val end = m.end()
             val result: String = m.group(0) ?: ""
-            var url: String = "vk://profile/" + result.substring(1, result.indexOf("|"))
-            url = if (url.contains("club"))
-                url.replace("club", "-") else
-                url.replace("id", "")
+            val urlId = result.substring(1, result.indexOf("|"))
+            print(urlId)
+            url += if (isVK) {
+                if (urlId.contains("club")) urlId.replace(
+                    "club",
+                    "-"
+                ) else urlId.replace("id", "")
+            } else {
+                urlId
+            }
             val txt: String = result.substring(result.indexOf("|") + 1, result.length - 1)
             spannable = spannable.replace(start, end, txt)
             m = pattern.matcher(spannable)
@@ -78,6 +99,7 @@ class WallAdapter(
     var items: List<VKWallPost?>
 ) : RecyclerView.Adapter<ViewHolder>() {
 
+    private val isVKExists = isPackageInstalled(VK_APP_PACKAGE_ID, activity.packageManager)
 
     override fun getItemViewType(position: Int): Int {
         return if (items[position]?.source_id == 0) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
@@ -115,7 +137,7 @@ class WallAdapter(
 
             holder.date.text = jdf.format(date)
             holder.text.text = (post?.text)
-            holder.customAddLinks(holder.text)
+            holder.customAddLinks(holder.text, isVKExists)
         } else if (holder is LoadingViewHolder) {
             holder.progressBar.isIndeterminate = true
         }
@@ -125,5 +147,6 @@ class WallAdapter(
     companion object {
         private const val VIEW_TYPE_ITEM = 0
         const val VIEW_TYPE_LOADING = 1
+        private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
     }
 }
