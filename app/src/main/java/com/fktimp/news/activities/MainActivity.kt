@@ -1,10 +1,11 @@
-package com.fktimp.news
+package com.fktimp.news.activities
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.fktimp.news.R
 import com.fktimp.news.adapters.OnLoadMoreListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
@@ -26,14 +27,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
-        initRecycler()
-
-
+        initRecycler(savedInstanceState)
     }
 
 
-    private fun initRecycler() {
-        wallPosts.add(VKWallPostModel())
+    private fun initRecycler(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            wallPosts.addAll(savedInstanceState.getParcelableArrayList("wallPosts")!!)
+            groupsInfo.addAll(savedInstanceState.getParcelableArrayList("groupsInfo")!!)
+        } else {
+            wallPosts.add(VKWallPostModel())
+        }
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = WallAdapter(this, wallPosts, groupsInfo)
         recyclerView.adapter = adapter
@@ -44,13 +48,17 @@ class MainActivity : AppCompatActivity() {
         scrollListener = RecyclerViewLoadMoreScroll(linearLayoutManager as LinearLayoutManager)
         scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
             override fun onLoadMore() {
+                scrollListener.isLoading = true
                 wallPosts.add(VKWallPostModel())
                 adapter.notifyItemInserted(wallPosts.size - 1)
                 NewsHelper.getData(this@MainActivity)
             }
         })
         recyclerView.addOnScrollListener(scrollListener)
-        NewsHelper.getData(this)
+        if (savedInstanceState == null) {
+            scrollListener.isLoading = true
+            NewsHelper.getData(this)
+        }
     }
 
     fun updateRecycler(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
@@ -63,11 +71,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteLoading() {
+        if (!scrollListener.isLoading){
+            return
+        }
         wallPosts.removeAt(wallPosts.size - 1)
         adapter.notifyItemRemoved(wallPosts.size)
         scrollListener.setLoaded()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelableArrayList("wallPosts", wallPosts)
+        outState.putParcelableArrayList("groupsInfo", groupsInfo)
+        super.onSaveInstanceState(outState)
+    }
 
     companion object {
         fun startFrom(context: Context) {

@@ -1,4 +1,4 @@
-package com.fktimp.news
+package com.fktimp.news.activities
 
 import android.app.Application
 import com.vk.api.sdk.VK

@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.util.PatternsCompat.AUTOLINK_EMAIL_ADDRESS
 import androidx.core.util.PatternsCompat.AUTOLINK_WEB_URL
+import com.fktimp.news.activities.VKState
 import java.util.regex.Pattern
 
 class CustomURLSpan(url: String) : URLSpan(url) {
@@ -34,15 +35,25 @@ fun customAddLinks(
     val patternVK = Pattern.compile("""\[(club|id)\d+\|(.)+]""")
     val patternURL = AUTOLINK_WEB_URL
     val patternEmail = AUTOLINK_EMAIL_ADDRESS
-    val result = addLinksByPattern(spannable, patternVK, isVKExists, true, emptyArray())  //or
-            addLinksByPattern(
-                spannable,
-                patternURL,
-                isVKExists,
-                false,
-                arrayOf("http://", "https://", "rtsp://")
-            ) or
-            addLinksByPattern(spannable, patternEmail, isVKExists, false, arrayOf("mailto:"))
+    val result = addLinksByPattern(
+        spannable,
+        patternVK,
+        isVKExists,
+        true,
+        emptyArray()
+    ) or addLinksByPattern(
+        spannable,
+        patternEmail,
+        isVKExists,
+        false,
+        arrayOf("mailto:")
+    ) or addLinksByPattern(
+        spannable,
+        patternURL,
+        isVKExists,
+        false,
+        arrayOf("http://", "https://", "rtsp://")
+    )
     if (result) {
         textView.text = spannable
         val movementMethod: MovementMethod? = textView.movementMethod

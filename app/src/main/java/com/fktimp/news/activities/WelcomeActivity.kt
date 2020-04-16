@@ -1,4 +1,4 @@
-package com.fktimp.news
+package com.fktimp.news.activities
 
 import android.app.Activity
 import android.content.Context

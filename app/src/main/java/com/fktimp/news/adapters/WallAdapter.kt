@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.fktimp.news.R
 import com.fktimp.news.SeeMoreTextView
-import com.fktimp.news.VKState
+import com.fktimp.news.activities.VKState
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
 import java.text.SimpleDateFormat

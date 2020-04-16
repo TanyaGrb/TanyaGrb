@@ -2,7 +2,7 @@ package com.fktimp.news.requests
 
 import android.content.Context
 import android.widget.Toast
-import com.fktimp.news.MainActivity
+import com.fktimp.news.activities.MainActivity
 import com.fktimp.news.models.VKNewsModel
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
