@@ -7,13 +7,15 @@ data class VKWallPostModel(
     var source_id: Int = 0,
     var date: Long = 0,
     var text: String = "",
-    var reply_post_id: Int = 0
-) : Parcelable, ClassLoader() {
+    var reply_post_id: Int = 0,
+    var attachments: ArrayList<Attachments> = ArrayList()
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readLong(),
         parcel.readString() ?: "",
-        parcel.readInt()
+        parcel.readInt(),
+        parcel.createTypedArrayList(Attachments.CREATOR) as ArrayList<Attachments>
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -21,6 +23,7 @@ data class VKWallPostModel(
         parcel.writeLong(date)
         parcel.writeString(text)
         parcel.writeInt(reply_post_id)
+        parcel.writeTypedList(attachments)
     }
 
     override fun describeContents(): Int {
@@ -42,7 +45,7 @@ data class VKGroupModel(
     val id: Int,
     val name: String,
     val photo_100: String
-) : Parcelable, ClassLoader() {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString() ?: "",
@@ -68,7 +71,6 @@ data class VKGroupModel(
             return arrayOfNulls(size)
         }
     }
-
 }
 
 data class VKNewsModel(
@@ -76,3 +78,92 @@ data class VKNewsModel(
     val groups: ArrayList<VKGroupModel> = ArrayList(),
     val next_from: String?
 )
+
+data class Attachments(
+    val type: String = "",
+    val photo: VKPhoto = VKPhoto()
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readParcelable(VKPhoto::class.java.classLoader) ?: VKPhoto()
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(type)
+        parcel.writeParcelable(photo, flags)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<Attachments> {
+        override fun createFromParcel(parcel: Parcel): Attachments {
+            return Attachments(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Attachments?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
+data class VKPhoto(
+    var sizes: ArrayList<VKSize> = ArrayList()
+) : Parcelable {
+    constructor(parcel: Parcel) : this(parcel.createTypedArrayList(VKSize.CREATOR) as ArrayList<VKSize>)
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeTypedList(sizes)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<VKPhoto> {
+        override fun createFromParcel(parcel: Parcel): VKPhoto {
+            return VKPhoto(parcel)
+        }
+
+        override fun newArray(size: Int): Array<VKPhoto?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
+data class VKSize(
+    val type: String = "",
+    val url: String = "",
+    val width: Int = 0,
+    val height: Int = 0
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
+        parcel.readInt(),
+        parcel.readInt()
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(type)
+        parcel.writeString(url)
+        parcel.writeInt(width)
+        parcel.writeInt(height)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<VKSize> {
+        override fun createFromParcel(parcel: Parcel): VKSize {
+            return VKSize(parcel)
+        }
+
+        override fun newArray(size: Int): Array<VKSize?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}

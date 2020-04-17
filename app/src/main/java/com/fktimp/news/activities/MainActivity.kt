@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+//        outState.putArrayList
         outState.putParcelableArrayList("wallPosts", wallPosts)
         outState.putParcelableArrayList("groupsInfo", groupsInfo)
         super.onSaveInstanceState(outState)
