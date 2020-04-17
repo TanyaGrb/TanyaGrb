@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -28,6 +27,7 @@ import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.flexbox.JustifyContent
+import com.stfalcon.imageviewer.StfalconImageViewer
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -151,6 +151,8 @@ class WallAdapter(
         if (countOfImages == 0) {
             return
         }
+        val urls =
+            List(countOfImages) { wallPost.attachments[it].photo.sizes[wallPost.attachments[it].photo.sizes.lastIndex].url }
         when (countOfImages) {
             1 -> {
                 // 1
@@ -164,7 +166,8 @@ class WallAdapter(
                     screenWidth,
                     actualHeight,
                     best.url,
-                    holder.photoLayout
+                    holder.photoLayout,
+                    urls
                 )
             }
             2 -> {
@@ -186,7 +189,8 @@ class WallAdapter(
                         screenWidth / 2 - DIVIDER_WIDTH,
                         actualHeight,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -211,7 +215,8 @@ class WallAdapter(
                         if (i == 0) screenWidth else screenWidth / 2 - DIVIDER_WIDTH,
                         if (i == 0) actualHeightRow0 else actualHeightRow1,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -236,7 +241,8 @@ class WallAdapter(
                         if (i == 0) screenWidth else screenWidth / 3 - 2 * DIVIDER_WIDTH,
                         if (i == 0) actualHeightRow0 else actualHeightRow1,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -267,7 +273,8 @@ class WallAdapter(
                         if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
                         if (i < 2) actualHeightRow0 else actualHeightRow1,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -298,7 +305,8 @@ class WallAdapter(
                         screenWidth / 3 - 2 * DIVIDER_WIDTH,
                         if (i < 3) actualHeightRow0 else actualHeightRow1,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -337,7 +345,8 @@ class WallAdapter(
                         if (i < 3) screenWidth / 3 - 2 * DIVIDER_WIDTH else screenWidth / 2 - DIVIDER_WIDTH,
                         if (i < 3) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -376,7 +385,8 @@ class WallAdapter(
                         if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
                         if (i < 2) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -415,7 +425,8 @@ class WallAdapter(
                         if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else if (i < 5) screenWidth / 3 - 2 * DIVIDER_WIDTH else screenWidth / 4 - 2 * DIVIDER_WIDTH,
                         if (i < 2) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -454,7 +465,8 @@ class WallAdapter(
                         if (i < 4) screenWidth / 4 - 2 * DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
                         if (i < 4) actualHeightRow0 else if (i < 7) actualHeightRow1 else actualHeightRow2,
                         best.url,
-                        holder.photoLayout
+                        holder.photoLayout,
+                        urls
                     )
                 }
             }
@@ -471,7 +483,8 @@ class WallAdapter(
         actualWidth: Int,
         actualHeight: Int,
         url: String,
-        layout: FlexboxLayout
+        layout: FlexboxLayout,
+        urls: List<String>
     ) {
         val imageView = ImageView(layout.context)
 
@@ -491,11 +504,15 @@ class WallAdapter(
             .into(imageView)
         layout.addView(imageView)
         imageView.setOnClickListener {
-            Toast.makeText(
-                it.context,
-                "w ${it.width} h${it.height} ${layout.width}",
-                Toast.LENGTH_LONG
-            ).show()
+            StfalconImageViewer.Builder(it.context, urls) { view, image ->
+                Glide.with(layout.context)
+                    .load(image)
+                    .into(view)
+            }
+                .withStartPosition(urls.indexOf(url))
+                .withHiddenStatusBar(false)
+                .show()
+
         }
     }
 
