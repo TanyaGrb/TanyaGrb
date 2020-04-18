@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="linkColor">#0008ff</color>
     <color name="dividerColor">#FFFFFF</color>
+    <color name="ic_color_link">#7A7A7A</color>
 </resources>

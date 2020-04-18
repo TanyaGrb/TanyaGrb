@@ -2,15 +2,22 @@ package com.fktimp.news.adapters
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Point
+import android.net.Uri
 import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -48,11 +55,18 @@ internal class LoadingViewHolder(itemView: View) : ViewHolder(itemView) {
 
 
 internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
-    var date: TextView = itemView.findViewById<View>(R.id.date) as TextView
-    var text: SeeMoreTextView = itemView.findViewById<View>(R.id.text) as SeeMoreTextView
-    var title: TextView = itemView.findViewById<View>(R.id.title) as TextView
-    var photo: ImageView = itemView.findViewById<View>(R.id.photo) as ImageView
-    var photoLayout: FlexboxLayout = itemView.findViewById<View>(R.id.flex_layout) as FlexboxLayout
+    var date: TextView = itemView.findViewById(R.id.date) as TextView
+    var text: SeeMoreTextView = itemView.findViewById(R.id.text) as SeeMoreTextView
+    var title: TextView = itemView.findViewById(R.id.link_title) as TextView
+    var photo: ImageView = itemView.findViewById(R.id.photo) as ImageView
+    var photoLayout: FlexboxLayout = itemView.findViewById(R.id.flex_layout) as FlexboxLayout
+    var link: ConstraintLayout =
+        itemView.findViewById(R.id.link) as ConstraintLayout
+    var mainLayout: LinearLayout =
+        itemView.findViewById(R.id.main_layout) as LinearLayout
+    var linkTitle: TextView = link.findViewById(R.id.link_title) as TextView
+    var linkCaption: TextView = link.findViewById(R.id.caption) as TextView
+    var linkImage: ImageView = link.findViewById(R.id.link_image) as ImageView
 
     init {
         photoLayout.flexDirection = FlexDirection.ROW
@@ -64,6 +78,8 @@ internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
             )
         )
         photoLayout.setShowDivider(FlexboxLayout.SHOW_DIVIDER_MIDDLE)
+        linkImage.layoutParams.width = 140
+        linkImage.layoutParams.height = 100
     }
 }
 
@@ -93,7 +109,7 @@ class WallAdapter(
         return if (viewType == VIEW_TYPE_ITEM)
             ItemViewHolder(
                 LayoutInflater.from(activity).inflate(
-                    R.layout.item_layout,
+                    R.layout.wall_post_item_layout,
                     parent,
                     false
                 )
@@ -123,8 +139,9 @@ class WallAdapter(
         val wallPost: VKWallPostModel? = items[position]
         holder.date.text = getDate(wallPost?.date ?: 0)
         if (wallPost?.text.isNullOrBlank()) {
-            holder.text.text = ""
+            holder.text.visibility = GONE
         } else {
+            holder.text.visibility = VISIBLE
             holder.text.setContent(wallPost?.text)
         }
         val currentGroup =
@@ -137,12 +154,17 @@ class WallAdapter(
             .into(holder.photo)
 
         holder.photoLayout.removeAllViews()
+
+        holder.link.visibility = GONE
         if (wallPost == null || wallPost.attachments.isNullOrEmpty()) {
             return
         }
-        val attachedImages = wallPost.attachments.filter { it.type == "photo" }
-        val attachedLinks = wallPost.attachments.filter { it.type == "link" }
-        if (attachedImages.isEmpty() && attachedLinks.isEmpty()) {
+        val attachedImages = wallPost.attachments.asSequence().filter { it.type == "photo" }
+            .map(VKAttachments::photo).toList()
+        val attachedLink =
+            wallPost.attachments.asSequence().filter { it.type == "link" }.map(VKAttachments::link)
+                .toList()
+        if (attachedImages.isEmpty() && attachedLink.isEmpty()) {
             return
         }
 
@@ -189,11 +211,33 @@ class WallAdapter(
                 setImages(position, attachedImages, 3, arrayOf(4, 3, 3), holder.photoLayout)
             }
         }
+
+        if (attachedLink.isEmpty()) {
+            return
+        }
+        if (attachedLink[0].title.isBlank()) {
+            holder.linkTitle.visibility = GONE
+        } else {
+            holder.linkTitle.visibility = VISIBLE
+        }
+        if (attachedLink[0].caption.isBlank()) {
+            holder.linkCaption.visibility = GONE
+        } else {
+            holder.linkCaption.visibility = VISIBLE
+        }
+        holder.link.visibility = VISIBLE
+
+        holder.linkTitle.text = attachedLink[0].title
+        holder.linkCaption.text = attachedLink[0].caption
+        holder.link.setOnClickListener { openURL(it.context, attachedLink[0].url) }
+        Glide.with(holder.mainLayout.context)
+            .load(if (attachedLink[0].photo.sizes.isEmpty()) R.drawable.ic_photo_placeholder else attachedLink[0].photo.sizes[0].url)
+            .into(holder.linkImage)
     }
 
     private fun setImages(
         itemIndex: Int,
-        attachedImages: List<VKAttachments>,
+        attachedImages: List<VKPhoto>,
         rowsCount: Int,
         placementScheme: Array<Int>,
         layout: FlexboxLayout
@@ -227,8 +271,8 @@ class WallAdapter(
                 actualWidth = sizeScheme[currentRow].width
             }
             val best =
-                attachedImages[pictureIndex].photo.sizes[attachedImages[pictureIndex].photo.sizes.lastIndex]
-            val worst = attachedImages[pictureIndex].photo.sizes[0]
+                attachedImages[pictureIndex].sizes[attachedImages[pictureIndex].sizes.lastIndex]
+            val worst = attachedImages[pictureIndex].sizes[0]
             addPicture(
                 worst.url,
                 actualWidth,
@@ -326,7 +370,7 @@ class WallAdapter(
     }
 
     private fun getActualHeight(
-        attachments: List<VKAttachments>,
+        attachments: List<VKPhoto>,
         from: Int,
         to: Int,
         maxWidth: Int,
@@ -335,10 +379,16 @@ class WallAdapter(
         val lst: MutableList<Int> = mutableListOf()
 
         for (i: Int in from..to) {
-            val best = attachments[i].photo.sizes[attachments[i].photo.sizes.lastIndex]
+            val best = attachments[i].sizes[attachments[i].sizes.lastIndex]
             lst.add(getActualHeight(best.width, best.height, maxWidth, maxHeight))
         }
         return lst.min() ?: 0
+    }
+
+    private fun openURL(context: Context, url: String) {
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse(url)
+        context.startActivity(intent)
     }
 
 
@@ -348,6 +398,6 @@ class WallAdapter(
         private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
 
         // к каждой стороне будет по разделителю, поэтому эта переменная в два раза меньше
-        private const val DIVIDER_WIDTH = 1
+        private const val DIVIDER_WIDTH = 2
     }
 }

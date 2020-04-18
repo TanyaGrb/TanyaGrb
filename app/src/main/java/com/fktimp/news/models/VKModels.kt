@@ -174,9 +174,11 @@ data class VKSize(
 data class VKLink(
     val url: String = "",
     val title: String = "",
+    val caption: String = "",
     val photo: VKPhoto = VKPhoto()
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readParcelable(VKPhoto::class.java.classLoader) ?: VKPhoto()
@@ -185,6 +187,7 @@ data class VKLink(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(url)
         parcel.writeString(title)
+        parcel.writeString(caption)
         parcel.writeParcelable(photo, flags)
     }
 

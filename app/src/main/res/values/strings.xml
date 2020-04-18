@@ -5,4 +5,6 @@
     <string name="post_date">14 апреля 12:34</string>
     <string name="post_text">Полёты рыб в космосе — серия биологических экспериментов над рыбами, проводимых на орбите Земли. Это часть экспериментов с животными в космосе, основная задача, которых определить влияние факторов космического полёта на рост, развитие, адаптацию, поведение живых организмов</string>
     <string name="group_photo_100">group_photo_100</string>
+    <string name="link_icon">link icon</string>
+    <string name="link_image">link image</string>
 </resources>
