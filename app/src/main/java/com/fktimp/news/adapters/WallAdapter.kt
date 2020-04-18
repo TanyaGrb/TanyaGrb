@@ -20,9 +20,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.fktimp.news.R
 import com.fktimp.news.SeeMoreTextView
 import com.fktimp.news.activities.VKState
-import com.fktimp.news.models.Attachments
-import com.fktimp.news.models.VKGroupModel
-import com.fktimp.news.models.VKWallPostModel
+import com.fktimp.news.models.*
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
@@ -146,333 +144,113 @@ class WallAdapter(
         if (wallPost == null || wallPost.attachments.isNullOrEmpty()) {
             return
         }
-
-        val countOfImages = wallPost.attachments.count { it.type == "photo" }
-        if (countOfImages == 0) {
+        val attachedImages = wallPost.attachments.filter { it.type == "photo" }
+        val attachedLinks = wallPost.attachments.filter { it.type == "link" }
+        if (attachedImages.isEmpty() && attachedLinks.isEmpty()) {
             return
         }
-        val urls =
-            List(countOfImages) { wallPost.attachments[it].photo.sizes[wallPost.attachments[it].photo.sizes.lastIndex].url }
-        when (countOfImages) {
+
+        when (attachedImages.size) {
             1 -> {
                 // 1
-                val actualHeight =
-                    getActualHeight(wallPost.attachments, 0, 0, screenWidth, screenHeight)
-                val best =
-                    wallPost.attachments[0].photo.sizes[wallPost.attachments[0].photo.sizes.lastIndex]
-                val worst = wallPost.attachments[0].photo.sizes[0]
-                addPicture(
-                    worst.url,
-                    screenWidth,
-                    actualHeight,
-                    best.url,
-                    holder.photoLayout,
-                    urls
-                )
+                setImages(position, attachedImages, 1, arrayOf(1), holder.photoLayout)
             }
             2 -> {
                 // 2
-                val actualHeight =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        1,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight
-                    )
-                for (i: Int in 0..1) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[0].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        actualHeight,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 1, arrayOf(2), holder.photoLayout)
             }
             3 -> {
                 // 1 2
-                val actualHeightRow0 =
-                    getActualHeight(wallPost.attachments, 0, 0, screenWidth, screenHeight / 2)
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        1,
-                        2,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                for (i: Int in 0..2) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i == 0) screenWidth else screenWidth / 2 - DIVIDER_WIDTH,
-                        if (i == 0) actualHeightRow0 else actualHeightRow1,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 2, arrayOf(1, 2), holder.photoLayout)
             }
             4 -> {
                 // 1 3
-                val actualHeightRow0 =
-                    getActualHeight(wallPost.attachments, 0, 0, screenWidth, screenHeight / 2)
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        1,
-                        3,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                for (i: Int in 0..3) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i == 0) screenWidth else screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        if (i == 0) actualHeightRow0 else actualHeightRow1,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 2, arrayOf(1, 3), holder.photoLayout)
             }
             5 -> {
                 // 2 3
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        1,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        2,
-                        4,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                for (i: Int in 0..4) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        if (i < 2) actualHeightRow0 else actualHeightRow1,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 2, arrayOf(2, 3), holder.photoLayout)
             }
             6 -> {
                 // 3 3
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        2,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        3,
-                        5,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 2
-                    )
-                for (i: Int in 0..5) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        if (i < 3) actualHeightRow0 else actualHeightRow1,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 2, arrayOf(3, 3), holder.photoLayout)
             }
             7 -> {
                 // 3 2 2
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        2,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        3,
-                        4,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow2 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        5,
-                        6,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                for (i: Int in 0..6) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i < 3) screenWidth / 3 - 2 * DIVIDER_WIDTH else screenWidth / 2 - DIVIDER_WIDTH,
-                        if (i < 3) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 3, arrayOf(3, 2, 2), holder.photoLayout)
             }
+
             8 -> {
                 // 2 3 3
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        1,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        2,
-                        4,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow2 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        5,
-                        7,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                for (i: Int in 0..7) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        if (i < 2) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 3, arrayOf(2, 3, 3), holder.photoLayout)
             }
             9 -> {
                 // 2 3 4
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        1,
-                        screenWidth / 2 - DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        2,
-                        4,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow2 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        5,
-                        8,
-                        screenWidth / 4 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                for (i: Int in 0..8) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i < 2) screenWidth / 2 - DIVIDER_WIDTH else if (i < 5) screenWidth / 3 - 2 * DIVIDER_WIDTH else screenWidth / 4 - 2 * DIVIDER_WIDTH,
-                        if (i < 2) actualHeightRow0 else if (i < 5) actualHeightRow1 else actualHeightRow2,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 3, arrayOf(2, 3, 4), holder.photoLayout)
             }
             10 -> {
                 // 4 3 3
-                val actualHeightRow0 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        0,
-                        3,
-                        screenWidth / 4 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow1 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        4,
-                        6,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                val actualHeightRow2 =
-                    getActualHeight(
-                        wallPost.attachments,
-                        7,
-                        9,
-                        screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        screenHeight / 3
-                    )
-                for (i: Int in 0..9) {
-                    val best =
-                        wallPost.attachments[i].photo.sizes[wallPost.attachments[i].photo.sizes.lastIndex]
-                    val worst = wallPost.attachments[i].photo.sizes[0]
-                    addPicture(
-                        worst.url,
-                        if (i < 4) screenWidth / 4 - 2 * DIVIDER_WIDTH else screenWidth / 3 - 2 * DIVIDER_WIDTH,
-                        if (i < 4) actualHeightRow0 else if (i < 7) actualHeightRow1 else actualHeightRow2,
-                        best.url,
-                        holder.photoLayout,
-                        urls
-                    )
-                }
+                setImages(position, attachedImages, 3, arrayOf(4, 3, 3), holder.photoLayout)
             }
         }
-
     }
+
+    private fun setImages(
+        itemIndex: Int,
+        attachedImages: List<VKAttachments>,
+        rowsCount: Int,
+        placementScheme: Array<Int>,
+        layout: FlexboxLayout
+    ) {
+        val sizeScheme: Array<PhotoCharacteristics> = getSizeScheme(placementScheme)
+        val actualHeight = IntArray(rowsCount)
+        var index = 0
+        for (rowIndex: Int in 0 until rowsCount) {
+            actualHeight[rowIndex] = getActualHeight(
+                attachedImages,
+                index,
+                index + placementScheme[rowIndex] - 1,
+                sizeScheme[rowIndex].width,
+                sizeScheme[rowIndex].height
+            )
+            index = placementScheme[rowIndex]
+        }
+        var currentRow: Int
+        for (pictureIndex: Int in 0..attachedImages.lastIndex) {
+            currentRow = getRow(placementScheme, pictureIndex)
+            val best =
+                attachedImages[pictureIndex].photo.sizes[attachedImages[pictureIndex].photo.sizes.lastIndex]
+            val worst = attachedImages[pictureIndex].photo.sizes[0]
+            addPicture(
+                worst.url,
+                sizeScheme[currentRow].width,
+                actualHeight[currentRow],
+                best.url,
+                layout,
+                itemIndex,
+                pictureIndex
+            )
+        }
+    }
+
+    private fun getRow(placementScheme: Array<Int>, currentPhoto: Int): Int {
+        var sum = 0
+        for ((index, countOfPhotosInRow) in placementScheme.withIndex()) {
+            sum += countOfPhotosInRow
+            if (currentPhoto + 1 <= sum) {
+                return index
+            }
+        }
+        return -1
+    }
+
+    private fun getSizeScheme(placementScheme: Array<Int>): Array<PhotoCharacteristics> =
+        Array(placementScheme.size) {
+            PhotoCharacteristics(
+                screenWidth / placementScheme[it] - DIVIDER_WIDTH * (placementScheme[it] - 1),
+                screenHeight / placementScheme.size
+            )
+        }
 
     @SuppressLint("SimpleDateFormat")
     fun getDate(time: Long): String = SimpleDateFormat("dd MMM HH:mm").format(Date(time * 1000L))
@@ -484,7 +262,8 @@ class WallAdapter(
         actualHeight: Int,
         url: String,
         layout: FlexboxLayout,
-        urls: List<String>
+        itemIndex: Int,
+        imageIndex: Int
     ) {
         val imageView = ImageView(layout.context)
 
@@ -504,13 +283,19 @@ class WallAdapter(
             .into(imageView)
         layout.addView(imageView)
         imageView.setOnClickListener {
-            StfalconImageViewer.Builder(it.context, urls) { view, image ->
+            StfalconImageViewer.Builder(it.context,
+                items[itemIndex]!!.attachments.asSequence()
+                    .filter { vkAttachments -> vkAttachments.type == "photo" }
+                    .map(VKAttachments::photo).map(
+                        VKPhoto::sizes
+                    ).map { list -> list[list.lastIndex].url }.toList()
+            ) { view, image ->
                 Glide.with(layout.context)
                     .load(image)
                     .into(view)
             }
                 .withTransitionFrom(imageView)
-                .withStartPosition(urls.indexOf(url))
+                .withStartPosition(imageIndex)
                 .show()
 
         }
@@ -529,7 +314,7 @@ class WallAdapter(
     }
 
     private fun getActualHeight(
-        attachments: ArrayList<Attachments>,
+        attachments: List<VKAttachments>,
         from: Int,
         to: Int,
         maxWidth: Int,
