@@ -24,7 +24,6 @@ import com.fktimp.news.models.*
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
-import com.google.android.flexbox.JustifyContent
 import com.stfalcon.imageviewer.StfalconImageViewer
 import java.text.SimpleDateFormat
 import java.util.*
@@ -58,9 +57,6 @@ internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
     init {
         photoLayout.flexDirection = FlexDirection.ROW
         photoLayout.flexWrap = FlexWrap.WRAP
-//        photoLayout.alignItems = AlignItems.STRETCH
-//        photoLayout.alignContent = AlignContent.SPACE_BETWEEN
-        photoLayout.justifyContent = JustifyContent.SPACE_BETWEEN
         photoLayout.setDividerDrawable(
             ContextCompat.getDrawable(
                 photoLayout.context,
@@ -73,12 +69,12 @@ internal class ItemViewHolder(itemView: View) : ViewHolder(itemView) {
 
 class WallAdapter(
     private val activity: Activity,
-    var items: List<VKWallPostModel?>,
-    var groupsInfo: List<VKGroupModel>
+    private var items: List<VKWallPostModel?>,
+    private var groupsInfo: List<VKGroupModel>
 ) : RecyclerView.Adapter<ViewHolder>() {
 
-    var screenWidth: Int = 0
-    var screenHeight: Int = 0
+    private var screenWidth: Int = 0
+    private var screenHeight: Int = 0
 
     init {
         VKState.isVKExist = isPackageInstalled(VK_APP_PACKAGE_ID, activity.packageManager)
@@ -215,15 +211,27 @@ class WallAdapter(
             )
             index = placementScheme[rowIndex]
         }
-        var currentRow: Int
+        var currentRow = -1
+        var actualWidth: Int
         for (pictureIndex: Int in 0..attachedImages.lastIndex) {
-            currentRow = getRow(placementScheme, pictureIndex)
+            if (getRow(placementScheme, pictureIndex) != currentRow) {
+                currentRow += 1
+                val realWidth =
+                    sizeScheme[currentRow].width * placementScheme[currentRow] + (placementScheme[currentRow] - 1) * DIVIDER_WIDTH
+                actualWidth = if (realWidth != screenWidth) {
+                    screenWidth - (sizeScheme[currentRow].width * (placementScheme[currentRow] - 1) + DIVIDER_WIDTH * 2 * (placementScheme[currentRow] - 1))
+                } else {
+                    sizeScheme[currentRow].width
+                }
+            } else {
+                actualWidth = sizeScheme[currentRow].width
+            }
             val best =
                 attachedImages[pictureIndex].photo.sizes[attachedImages[pictureIndex].photo.sizes.lastIndex]
             val worst = attachedImages[pictureIndex].photo.sizes[0]
             addPicture(
                 worst.url,
-                sizeScheme[currentRow].width,
+                actualWidth,
                 actualHeight[currentRow],
                 best.url,
                 layout,
@@ -283,12 +291,14 @@ class WallAdapter(
             .into(imageView)
         layout.addView(imageView)
         imageView.setOnClickListener {
-            StfalconImageViewer.Builder(it.context,
-                items[itemIndex]!!.attachments.asSequence()
-                    .filter { vkAttachments -> vkAttachments.type == "photo" }
-                    .map(VKAttachments::photo).map(
-                        VKPhoto::sizes
-                    ).map { list -> list[list.lastIndex].url }.toList()
+            val postURLs = items[itemIndex]!!.attachments.asSequence()
+                .filter { vkAttachments -> vkAttachments.type == "photo" }
+                .map(VKAttachments::photo).map(
+                    VKPhoto::sizes
+                ).map { list -> list[list.lastIndex].url }.toList()
+            lateinit var viewer: StfalconImageViewer<String>
+            viewer = StfalconImageViewer.Builder(
+                it.context, postURLs
             ) { view, image ->
                 Glide.with(layout.context)
                     .load(image)
@@ -296,8 +306,10 @@ class WallAdapter(
             }
                 .withTransitionFrom(imageView)
                 .withStartPosition(imageIndex)
+                .withImageChangeListener { pos ->
+                    viewer.updateTransitionImage(layout.getChildAt(pos) as ImageView?)
+                }
                 .show()
-
         }
     }
 
