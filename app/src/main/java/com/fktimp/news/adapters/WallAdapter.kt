@@ -509,8 +509,8 @@ class WallAdapter(
                     .load(image)
                     .into(view)
             }
+                .withTransitionFrom(imageView)
                 .withStartPosition(urls.indexOf(url))
-                .withHiddenStatusBar(false)
                 .show()
 
         }
