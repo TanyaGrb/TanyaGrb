@@ -346,6 +346,7 @@ class WallAdapter(
             ) { view, image ->
                 Glide.with(layout.context)
                     .load(image)
+                    .dontAnimate()
                     .into(view)
             }
                 .withTransitionFrom(imageView)

@@ -68,8 +68,15 @@ object NewsHelper {
                 }
 
                 override fun success(result: VKNewsModel) {
+                    if (result.items.isEmpty() && next_from.isEmpty())
+                        Toast.makeText(
+                            context,
+                            "Новостей нет.Попробуйте изменить список источников.",
+                            Toast.LENGTH_LONG
+                        ).show()
                     (context as MainActivity).updateRecycler(result.items, result.groups)
-                    next_from = result.next_from ?: STOP
+                    next_from = if (result.next_from.isNullOrBlank()) STOP else result.next_from
+
                 }
             })
     }

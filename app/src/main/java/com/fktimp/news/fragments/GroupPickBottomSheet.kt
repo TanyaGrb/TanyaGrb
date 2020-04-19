@@ -108,14 +108,17 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         this.context?.let {
-            NewsHelper.deleteAllSources(it)
-            NewsHelper.saveStringSet(
-                it,
-                adapter.groupList.asSequence().filter { model -> model.isPicked == true }
-                    .map { model -> "-${model.id}" }.toHashSet()
-            )
-            NewsHelper.actualSources = NewsHelper.getSavedStringSets(it)
-            (activity as MainActivity).updateFeed()
+            val current = adapter.groupList.asSequence().filter { model -> model.isPicked == true }
+                .map { model -> "-${model.id}" }.toHashSet()
+            if (current != NewsHelper.getSavedStringSets(it)) {
+                NewsHelper.deleteAllSources(it)
+                NewsHelper.saveStringSet(
+                    it, current
+
+                )
+                NewsHelper.actualSources = NewsHelper.getSavedStringSets(it)
+                (activity as MainActivity).updateFeed()
+            }
         }
 
         super.onDismiss(dialog)

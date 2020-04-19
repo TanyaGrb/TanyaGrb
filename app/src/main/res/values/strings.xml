@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Новости КУбГу</string>
+    <string name="app_name">Новости КубГУ</string>
     <integer name="com_vk_sdk_AppId">7273146</integer>
     <string name="change_sources">Источники</string>
     <string name="pick_sources">Выберите необходимые сообщества:</string>

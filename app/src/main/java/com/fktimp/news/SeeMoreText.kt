@@ -19,7 +19,7 @@ class SeeMoreTextView : AppCompatTextView {
     private var originalContent: String? = null
     private var collapsedTextSpannable: SpannableString? = null
     private var expandedTextSpannable: SpannableString? = null
-    private var seeMore = "\nПоказать полностью ..."
+    private var seeMore = "\nПоказать полностью..."
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)

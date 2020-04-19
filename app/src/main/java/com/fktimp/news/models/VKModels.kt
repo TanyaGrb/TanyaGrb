@@ -39,6 +39,25 @@ data class VKWallPostModel(
         override fun newArray(size: Int): Array<VKWallPostModel?> {
             return arrayOfNulls(size)
         }
+
+        fun parse(json: JSONObject): VKWallPostModel {
+            val attachments = if (json.optJSONArray("attachments") != null) List(
+                json.getJSONArray("attachments").length()
+            ) {
+                VKAttachments.parse(
+                    json.getJSONArray(
+                        "attachments"
+                    )[it] as JSONObject
+                )
+            } as ArrayList<VKAttachments> else ArrayList()
+            return VKWallPostModel(
+                json.getInt("source_id"),
+                json.getLong("date"),
+                json.getString("text"),
+                json.optInt("reply_post_id", 0),
+                attachments
+            )
+        }
     }
 }
 
@@ -85,7 +104,44 @@ data class VKNewsModel(
     val items: ArrayList<VKWallPostModel> = ArrayList(),
     val groups: ArrayList<VKGroupModel> = ArrayList(),
     val next_from: String?
-)
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.createTypedArrayList(VKWallPostModel.CREATOR) as ArrayList<VKWallPostModel>,
+        parcel.createTypedArrayList(VKGroupModel.CREATOR) as ArrayList<VKGroupModel>,
+        parcel.readString()
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeTypedList(items)
+        parcel.writeTypedList(groups)
+        parcel.writeString(next_from)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<VKNewsModel> {
+        override fun createFromParcel(parcel: Parcel): VKNewsModel {
+            return VKNewsModel(parcel)
+        }
+
+        override fun newArray(size: Int): Array<VKNewsModel?> {
+            return arrayOfNulls(size)
+        }
+
+        fun parse(json: JSONObject): VKNewsModel = VKNewsModel(
+            List(
+                json.getJSONArray("items").length()
+            ) { VKWallPostModel.parse(json.getJSONArray("items")[it] as JSONObject) } as ArrayList<VKWallPostModel>,
+            List(
+                json.getJSONArray("groups").length()
+            ) { VKGroupModel.parse(json.getJSONArray("groups")[it] as JSONObject) } as ArrayList<VKGroupModel>,
+            json.optString("next_from", "")
+        )
+
+    }
+}
 
 data class VKAttachments(
     val type: String = "",
@@ -116,6 +172,14 @@ data class VKAttachments(
         override fun newArray(size: Int): Array<VKAttachments?> {
             return arrayOfNulls(size)
         }
+
+        fun parse(json: JSONObject): VKAttachments = VKAttachments(
+            json.getString("type"),
+            if (json.optJSONObject("photo") != null) VKPhoto.parse(json.getJSONObject("photo")) else VKPhoto(),
+            if (json.optJSONObject("link") != null) VKLink.parse(json.getJSONObject("link")) else VKLink()
+        )
+
+
     }
 }
 
@@ -140,6 +204,13 @@ data class VKPhoto(
         override fun newArray(size: Int): Array<VKPhoto?> {
             return arrayOfNulls(size)
         }
+
+        fun parse(json: JSONObject): VKPhoto = VKPhoto(
+            List(
+                json.getJSONArray("sizes").length()
+            ) { VKSize.parse(json.getJSONArray("sizes")[it] as JSONObject) } as ArrayList)
+
+
     }
 }
 
@@ -175,8 +246,15 @@ data class VKSize(
         override fun newArray(size: Int): Array<VKSize?> {
             return arrayOfNulls(size)
         }
-    }
 
+        fun parse(json: JSONObject): VKSize = VKSize(
+            json.getString("type"),
+            json.getString("url"),
+            json.getInt("width"),
+            json.getInt("height")
+        )
+
+    }
 }
 
 data class VKLink(
@@ -211,7 +289,15 @@ data class VKLink(
         override fun newArray(size: Int): Array<VKLink?> {
             return arrayOfNulls(size)
         }
+
+        fun parse(json: JSONObject): VKLink = VKLink(
+            json.getString("url"),
+            json.optString("title", ""),
+            json.optString("caption", ""),
+            if (json.optJSONObject("photo") != null) VKPhoto.parse(json.getJSONObject("photo")) else VKPhoto()
+        )
     }
+
 }
 
 data class PhotoCharacteristics(val width: Int = 0, val height: Int = 0)

@@ -1,8 +1,6 @@
 package com.fktimp.news.requests
 
 import com.fktimp.news.models.VKNewsModel
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.vk.api.sdk.requests.VKRequest
 import org.json.JSONObject
 
@@ -16,8 +14,5 @@ class VKNewsRequest(sources: String, count: Int, start_from: String) :
         addParam("start_from", start_from)
     }
 
-    override fun parse(r: JSONObject): VKNewsModel = Gson().fromJson(
-        r.getJSONObject("response").toString(),
-        object : TypeToken<VKNewsModel?>() {}.type
-    )
+    override fun parse(r: JSONObject): VKNewsModel = VKNewsModel.parse(r.getJSONObject("response"))
 }
