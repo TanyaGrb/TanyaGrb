@@ -55,7 +55,7 @@ object NewsHelper {
 
 
     fun getData(context: Context) {
-        if (next_from == STOP) {
+        if (next_from == STOP || actualSources.isEmpty()) {
             Toast.makeText(context, "Новостей больше нет", Toast.LENGTH_SHORT).show()
             (context as MainActivity).deleteLoading()
             return
