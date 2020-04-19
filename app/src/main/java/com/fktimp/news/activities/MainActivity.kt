@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     val wallPosts: ArrayList<VKWallPostModel> = ArrayList()
-    val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
+    private val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
 
@@ -61,6 +61,10 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             scrollListener.isLoading = true
             NewsHelper.getData(this)
+        }
+        refresh_layout.setOnRefreshListener {
+            updateFeed()
+            refresh_layout.isRefreshing = false
         }
     }
 
