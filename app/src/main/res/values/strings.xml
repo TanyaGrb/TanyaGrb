@@ -1,10 +1,21 @@
 <resources>
     <string name="app_name">Новости КУбГу</string>
     <integer name="com_vk_sdk_AppId">7273146</integer>
-    <string name="source_title">Название группы</string>
-    <string name="post_date">14 апреля 12:34</string>
-    <string name="post_text">Полёты рыб в космосе — серия биологических экспериментов над рыбами, проводимых на орбите Земли. Это часть экспериментов с животными в космосе, основная задача, которых определить влияние факторов космического полёта на рост, развитие, адаптацию, поведение живых организмов</string>
-    <string name="group_photo_100">group_photo_100</string>
-    <string name="link_icon">link icon</string>
-    <string name="link_image">link image</string>
+    <string name="change_sources">Источники</string>
+    <string name="pick_sources">Выберите необходимые сообщества:</string>
+
+    <!--    descriptions -->
+    <string name="description_group_photo_100">group_photo_100</string>
+    <string name="description_link_icon">link icon</string>
+    <string name="description_link_image">link image</string>
+    <!---->
+
+
+    <!---    examples -->
+    <string name="group_title_example">Название группы</string>
+    <string name="post_date_example">14 апреля 12:34</string>
+    <string name="post_text_example">Полёты рыб в космосе — серия биологических экспериментов над рыбами, проводимых на орбите Земли. Это часть экспериментов с животными в космосе, основная задача, которых определить влияние факторов космического полёта на рост, развитие, адаптацию, поведение живых организмов</string>
+    <string name="link_title_example">Заголовок ссылки</string>
+    <string name="link_caption_example">example.com</string>
+    <!---->
 </resources>

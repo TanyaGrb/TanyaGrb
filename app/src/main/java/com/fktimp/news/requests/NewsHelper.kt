@@ -11,13 +11,9 @@ import com.vk.api.sdk.VKApiCallback
 object NewsHelper {
     const val SOURCE_SET = "string_set_key"
     const val STOP = "STOP_CONST"
-
-    //    private val defaultSources =
-//        arrayOf("-50246288", "-45715576", "-27775663", "-181445782", "-35684557")
-    private val defaultSources =
+    val defaultSources =
         arrayOf("-61559790", "-67531827", "-88384060", "-91150385", "-940543", "-192270804")
     lateinit var actualSources: Set<String>
-    lateinit var offsets: Map<String, Int>
     var next_from: String = ""
 
 
@@ -35,8 +31,6 @@ object NewsHelper {
             SOURCE_SET, Context.MODE_PRIVATE
         )
         sharedPref.edit().clear().apply()
-        Toast.makeText(context, "All preferences $SOURCE_SET deleted", Toast.LENGTH_SHORT).show()
-        saveDefaultSources(context)
     }
 
     fun saveStringSet(context: Context, mSet: HashSet<String>) {
@@ -46,7 +40,6 @@ object NewsHelper {
         val editor = sharedPref.edit()
         editor.putStringSet(SOURCE_SET, mSet)
         editor.apply()
-        Toast.makeText(context, "Default sources saved", Toast.LENGTH_SHORT).show()
     }
 
     fun getSavedStringSets(context: Context): Set<String> {
@@ -54,7 +47,7 @@ object NewsHelper {
             SOURCE_SET,
             Context.MODE_PRIVATE
         ).getStringSet(SOURCE_SET, null) as Set<String>)
-        offsets = mutableMapOf()
+        val offsets: Map<String, Int> = mutableMapOf()
         for (source in result)
             offsets.plus(Pair(source, 0))
         return result
@@ -68,7 +61,7 @@ object NewsHelper {
             return
         }
         VK.execute(
-            VKNewsRequest(defaultSources.joinToString(", "), 15, next_from),
+            VKNewsRequest(actualSources.joinToString(", "), 15, next_from),
             object : VKApiCallback<VKNewsModel> {
                 override fun fail(error: Exception) {
                     Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
@@ -80,4 +73,5 @@ object NewsHelper {
                 }
             })
     }
+
 }

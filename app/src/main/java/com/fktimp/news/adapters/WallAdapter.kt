@@ -108,7 +108,7 @@ class WallAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return if (viewType == VIEW_TYPE_ITEM)
             ItemViewHolder(
-                LayoutInflater.from(activity).inflate(
+                LayoutInflater.from(parent.context).inflate(
                     R.layout.wall_post_item_layout,
                     parent,
                     false
@@ -116,7 +116,7 @@ class WallAdapter(
             )
         else
             LoadingViewHolder(
-                LayoutInflater.from(activity).inflate(
+                LayoutInflater.from(parent.context).inflate(
                     R.layout.item_loading,
                     parent,
                     false

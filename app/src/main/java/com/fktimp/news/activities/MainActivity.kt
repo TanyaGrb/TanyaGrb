@@ -3,12 +3,15 @@ package com.fktimp.news.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.R
 import com.fktimp.news.adapters.OnLoadMoreListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
+import com.fktimp.news.fragments.GroupPickBottomSheet
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.requests.NewsHelper
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteLoading() {
-        if (!scrollListener.isLoading){
+        if (!scrollListener.isLoading) {
             return
         }
         wallPosts.removeAt(wallPosts.size - 1)
@@ -79,12 +82,35 @@ class MainActivity : AppCompatActivity() {
         scrollListener.setLoaded()
     }
 
+    fun updateFeed() {
+        NewsHelper.next_from = ""
+        wallPosts.clear()
+        wallPosts.add(VKWallPostModel())
+        adapter.notifyDataSetChanged()
+        scrollListener.isLoading = true
+        NewsHelper.getData(this)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
-//        outState.putArrayList
         outState.putParcelableArrayList("wallPosts", wallPosts)
         outState.putParcelableArrayList("groupsInfo", groupsInfo)
         super.onSaveInstanceState(outState)
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.menu_change_sources -> {
+            GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
+            true
+        }
+        else -> super.onOptionsItemSelected(item)
+    }
+
 
     companion object {
         fun startFrom(context: Context) {
