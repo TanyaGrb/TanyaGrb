@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.R
@@ -15,45 +16,57 @@ import com.fktimp.news.fragments.GroupPickBottomSheet
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.requests.NewsHelper
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipDrawable
 import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
 
-    val wallPosts: ArrayList<VKWallPostModel> = ArrayList()
+    val allWallPosts: ArrayList<VKWallPostModel> = ArrayList()
     private val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
+    private val pickedCategories: ArrayList<Int> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
+    private val filteredWallPost: ArrayList<VKWallPostModel> = ArrayList()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+        if (savedInstanceState != null) {
+            pickedCategories.clear()
+            pickedCategories.addAll(savedInstanceState.getIntegerArrayList("pickedCategories") as ArrayList<Int>)
+        }
         NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
+        initChips()
         initRecycler(savedInstanceState)
     }
 
 
     private fun initRecycler(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
-            wallPosts.addAll(savedInstanceState.getParcelableArrayList("wallPosts")!!)
+            allWallPosts.addAll(savedInstanceState.getParcelableArrayList("wallPosts")!!)
             groupsInfo.addAll(savedInstanceState.getParcelableArrayList("groupsInfo")!!)
+            filteredWallPost.clear()
+            if (pickedCategories.isNotEmpty())
+                filteredWallPost.addAll(allWallPosts.filter { it.topic_id in pickedCategories })
+            else
+                filteredWallPost.addAll(allWallPosts)
         } else {
-            wallPosts.add(VKWallPostModel())
+            filteredWallPost.add(VKWallPostModel())
         }
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = WallAdapter(this, wallPosts, groupsInfo)
+        adapter = WallAdapter(this, filteredWallPost, groupsInfo)
         recyclerView.adapter = adapter
-        val linearLayoutManager =
-            recyclerView.layoutManager as LinearLayoutManager?
 
-
-        scrollListener = RecyclerViewLoadMoreScroll(linearLayoutManager as LinearLayoutManager)
+        scrollListener = RecyclerViewLoadMoreScroll(LinearLayoutManager(this))
         scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
             override fun onLoadMore() {
                 scrollListener.isLoading = true
-                wallPosts.add(VKWallPostModel())
-                adapter.notifyItemInserted(wallPosts.size - 1)
+                filteredWallPost.add(VKWallPostModel())
+                adapter.notifyItemInserted(filteredWallPost.size - 1)
                 NewsHelper.getData(this@MainActivity)
             }
         })
@@ -68,36 +81,80 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun updateRecycler(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
+    private fun initChips() {
+        for (topic in topicTitles.keys) {
+            val currentChip = Chip(this).apply {
+                setChipDrawable(
+                    ChipDrawable.createFromAttributes(
+                        this@MainActivity,
+                        null,
+                        0,
+                        R.style.ChipFilter
+                    )
+                )
+                text = topic
+                setOnClickListener { view ->
+                    if ((view as Chip).isChecked)
+                        pickedCategories.add(topicTitles[topic] ?: 0)
+                    else
+                        pickedCategories.remove(topicTitles[topic] ?: 0)
+                    changeRecyclerCategories()
+                }
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(8, 8, 8, 8) }
+                if (pickedCategories.isNotEmpty() && pickedCategories.contains(topicTitles[topic]))
+                    isChecked = true
+            }
+            chip_group.addView(currentChip)
+        }
+    }
+
+    fun updateRecyclerNewInfo(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
         deleteLoading()
-        val startPos = wallPosts.size
+        val startPos = filteredWallPost.size
         groupsInfo.addAll(groups)
         groupsInfo.distinct()
-        wallPosts.addAll(items)
-        adapter.notifyItemRangeInserted(startPos, items.size)
+        allWallPosts.addAll(items)
+        val filteredItems =
+            if (pickedCategories.isNotEmpty()) items.filter { it.topic_id in pickedCategories } else items
+        filteredWallPost.addAll(filteredItems)
+        adapter.notifyItemRangeInserted(startPos, filteredItems.size)
+    }
+
+    private fun changeRecyclerCategories() {
+        filteredWallPost.clear()
+        if (pickedCategories.isEmpty())
+            filteredWallPost.addAll(allWallPosts)
+        else
+            filteredWallPost.addAll(allWallPosts.filter { it.topic_id in pickedCategories })
+        adapter.notifyDataSetChanged()
     }
 
     fun deleteLoading() {
         if (!scrollListener.isLoading) {
             return
         }
-        wallPosts.removeAt(wallPosts.size - 1)
-        adapter.notifyItemRemoved(wallPosts.size)
+        filteredWallPost.removeAt(filteredWallPost.size - 1)
+        adapter.notifyItemRemoved(filteredWallPost.size)
         scrollListener.setLoaded()
     }
 
     fun updateFeed() {
         NewsHelper.next_from = ""
-        wallPosts.clear()
-        wallPosts.add(VKWallPostModel())
+        allWallPosts.clear()
+        filteredWallPost.clear()
+        filteredWallPost.add(VKWallPostModel())
         adapter.notifyDataSetChanged()
         scrollListener.isLoading = true
         NewsHelper.getData(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelableArrayList("wallPosts", wallPosts)
+        outState.putParcelableArrayList("wallPosts", allWallPosts)
         outState.putParcelableArrayList("groupsInfo", groupsInfo)
+        outState.putIntegerArrayList("pickedCategories", pickedCategories)
         super.onSaveInstanceState(outState)
     }
 
@@ -121,5 +178,19 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(context, MainActivity::class.java)
             context.startActivity(intent)
         }
+
+        private val topicTitles = mapOf(
+            "Арт" to 1,
+            "IT" to 7,
+            "Игры" to 12,
+            "Музыка" to 16,
+            "Фото" to 19,
+            "Наука" to 21,
+            "Спорт" to 23,
+            "Туризм" to 25,
+            "Кино" to 26,
+            "Юмор" to 32,
+            "Стиль" to 43
+        )
     }
 }

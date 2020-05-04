@@ -114,18 +114,15 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
                 NewsHelper.deleteAllSources(it)
                 NewsHelper.saveStringSet(
                     it, current
-
                 )
                 NewsHelper.actualSources = NewsHelper.getSavedStringSets(it)
                 (activity as MainActivity).updateFeed()
             }
         }
-
         super.onDismiss(dialog)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putParcelableArrayList("groupList", adapter.groupList as ArrayList<out Parcelable>)
     }
-
 }

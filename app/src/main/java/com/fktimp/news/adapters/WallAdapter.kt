@@ -101,6 +101,7 @@ class WallAdapter(
         screenHeight = size.y
     }
 
+
     override fun getItemViewType(position: Int): Int {
         return if (items[position]?.source_id == 0) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
     }

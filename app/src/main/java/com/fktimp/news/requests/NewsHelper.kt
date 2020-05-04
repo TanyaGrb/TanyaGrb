@@ -56,7 +56,6 @@ object NewsHelper {
 
     fun getData(context: Context) {
         if (next_from == STOP || actualSources.isEmpty()) {
-            Toast.makeText(context, "Новостей больше нет", Toast.LENGTH_SHORT).show()
             (context as MainActivity).deleteLoading()
             return
         }
@@ -74,7 +73,7 @@ object NewsHelper {
                             "Новостей нет.Попробуйте изменить список источников.",
                             Toast.LENGTH_LONG
                         ).show()
-                    (context as MainActivity).updateRecycler(result.items, result.groups)
+                    (context as MainActivity).updateRecyclerNewInfo(result.items, result.groups)
                     next_from = if (result.next_from.isNullOrBlank()) STOP else result.next_from
 
                 }
