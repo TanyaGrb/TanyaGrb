@@ -128,6 +128,7 @@ class WallAdapter(
     override fun getItemCount(): Int = items.size
 
 
+    @Suppress("UNCHECKED_CAST")
     @SuppressLint("SimpleDateFormat")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         if (holder is LoadingViewHolder) {
@@ -160,12 +161,11 @@ class WallAdapter(
         if (wallPost == null || wallPost.attachments.isNullOrEmpty()) {
             return
         }
-        val attachedImages = wallPost.attachments.asSequence().filter { it.type == "photo" }
-            .map(VKAttachments::photo).toList()
-        val attachedLink =
-            wallPost.attachments.asSequence().filter { it.type == "link" }.map(VKAttachments::link)
-                .toList()
-        if (attachedImages.isEmpty() && attachedLink.isEmpty()) {
+        val attachedImages: List<List<VKSize>> =
+            wallPost.attachments.asSequence().filter { it.type == "photo" && it.photo != null }
+                .map(VKAttachments::photo).toList() as List<List<VKSize>>
+        val link = wallPost.attachments.find { it.type == "link" }?.link
+        if (attachedImages.isNullOrEmpty() && link == null) {
             return
         }
 
@@ -213,32 +213,32 @@ class WallAdapter(
             }
         }
 
-        if (attachedLink.isEmpty()) {
-            return
-        }
-        if (attachedLink[0].title.isBlank()) {
+        if (link == null) return
+
+        if (link.title.isBlank())
             holder.linkTitle.visibility = GONE
-        } else {
+        else
             holder.linkTitle.visibility = VISIBLE
-        }
-        if (attachedLink[0].caption.isBlank()) {
+
+        if (link.caption.isBlank())
             holder.linkCaption.visibility = GONE
-        } else {
+        else
             holder.linkCaption.visibility = VISIBLE
-        }
+
         holder.link.visibility = VISIBLE
 
-        holder.linkTitle.text = attachedLink[0].title
-        holder.linkCaption.text = attachedLink[0].caption
-        holder.link.setOnClickListener { openURL(it.context, attachedLink[0].url) }
+        holder.linkTitle.text = link.title
+        holder.linkCaption.text = link.caption
+        holder.link.setOnClickListener { openURL(it.context, link.url) }
+        val bestImage = getBestSize(link.photo)
         Glide.with(holder.mainLayout.context)
-            .load(if (attachedLink[0].photo.sizes.isEmpty()) R.drawable.ic_photo_placeholder else attachedLink[0].photo.sizes[0].url)
+            .load(bestImage?.url ?: R.drawable.ic_photo_placeholder)
             .into(holder.linkImage)
     }
 
     private fun setImages(
         itemIndex: Int,
-        attachedImages: List<VKPhoto>,
+        attachedImages: List<List<VKSize>>,
         rowsCount: Int,
         placementScheme: Array<Int>,
         layout: FlexboxLayout
@@ -258,6 +258,9 @@ class WallAdapter(
         }
         var currentRow = -1
         var actualWidth: Int
+        val pictureURLs: List<String> = List(attachedImages.size) {
+            getBestSize(attachedImages[it])!!.url
+        }
         for (pictureIndex: Int in 0..attachedImages.lastIndex) {
             if (getRow(placementScheme, pictureIndex) != currentRow) {
                 currentRow += 1
@@ -271,16 +274,15 @@ class WallAdapter(
             } else {
                 actualWidth = sizeScheme[currentRow].width
             }
-            val best =
-                attachedImages[pictureIndex].sizes[attachedImages[pictureIndex].sizes.lastIndex]
-            val worst = attachedImages[pictureIndex].sizes[0]
+            val best = getBestSize(attachedImages[pictureIndex])!!
+            val worst = getWorstSize(attachedImages[pictureIndex])
             addPicture(
                 worst.url,
                 actualWidth,
                 actualHeight[currentRow],
                 best.url,
                 layout,
-                itemIndex,
+                pictureURLs,
                 pictureIndex
             )
         }
@@ -315,7 +317,7 @@ class WallAdapter(
         actualHeight: Int,
         url: String,
         layout: FlexboxLayout,
-        itemIndex: Int,
+        pictureURLs: List<String>,
         imageIndex: Int
     ) {
         val imageView = ImageView(layout.context)
@@ -336,14 +338,9 @@ class WallAdapter(
             .into(imageView)
         layout.addView(imageView)
         imageView.setOnClickListener {
-            val postURLs = items[itemIndex]!!.attachments.asSequence()
-                .filter { vkAttachments -> vkAttachments.type == "photo" }
-                .map(VKAttachments::photo).map(
-                    VKPhoto::sizes
-                ).map { list -> list[list.lastIndex].url }.toList()
             lateinit var viewer: StfalconImageViewer<String>
             viewer = StfalconImageViewer.Builder(
-                it.context, postURLs
+                it.context, pictureURLs
             ) { view, image ->
                 Glide.with(layout.context)
                     .load(image)
@@ -372,7 +369,7 @@ class WallAdapter(
     }
 
     private fun getActualHeight(
-        attachments: List<VKPhoto>,
+        attachments: List<List<VKSize>>,
         from: Int,
         to: Int,
         maxWidth: Int,
@@ -381,7 +378,7 @@ class WallAdapter(
         val lst: MutableList<Int> = mutableListOf()
 
         for (i: Int in from..to) {
-            val best = attachments[i].sizes[attachments[i].sizes.lastIndex]
+            val best = getBestSize(attachments[i])!!
             lst.add(getActualHeight(best.width, best.height, maxWidth, maxHeight))
         }
         return lst.min() ?: 0
@@ -391,6 +388,18 @@ class WallAdapter(
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(url)
         context.startActivity(intent)
+    }
+
+    private fun getBestSize(sizes: List<VKSize>?): VKSize? = when {
+        sizes.isNullOrEmpty() -> null
+        sizes.size > 1 -> sizes[1]
+        else -> sizes[0]
+    }
+
+
+    private fun getWorstSize(sizes: List<VKSize>): VKSize = when {
+        sizes.isEmpty() -> VKSize()
+        else -> sizes[0]
     }
 
 

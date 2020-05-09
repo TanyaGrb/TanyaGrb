@@ -6,23 +6,23 @@ import org.json.JSONObject
 
 
 data class VKLink(
-    val url: String = "",
-    val title: String = "",
-    val caption: String = "",
-    val photo: VKPhoto = VKPhoto()
+    val url: String,
+    val title: String,
+    val caption: String,
+    val photo: List<VKSize>? = null
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readParcelable(VKPhoto::class.java.classLoader) ?: VKPhoto()
+        parcel.createTypedArrayList(VKSize.CREATOR) as ArrayList<VKSize>
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(url)
         parcel.writeString(title)
         parcel.writeString(caption)
-        parcel.writeParcelable(photo, flags)
+        parcel.writeTypedList(photo)
     }
 
     override fun describeContents(): Int {
@@ -38,11 +38,21 @@ data class VKLink(
             return arrayOfNulls(size)
         }
 
-        fun parse(json: JSONObject): VKLink = VKLink(
-            json.getString("url"),
-            json.optString("title", ""),
-            json.optString("caption", ""),
-            if (json.optJSONObject("photo") != null) VKPhoto.parse(json.getJSONObject("photo")) else VKPhoto()
-        )
+        fun parse(json: JSONObject): VKLink {
+            val photoField = json.optJSONObject("photo")
+            val sizesJsonArray = photoField?.getJSONArray("sizes")
+            val sizes = if (sizesJsonArray != null)
+                listOf(
+                    VKSize.parse(sizesJsonArray[0] as JSONObject),
+                    VKSize.parse(sizesJsonArray[sizesJsonArray.length() - 1] as JSONObject)
+                ) else null
+            
+            return VKLink(
+                json.getString("url"),
+                json.optString("title", ""),
+                json.optString("caption", ""),
+                sizes
+            )
+        }
     }
 }
