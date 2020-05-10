@@ -2,19 +2,35 @@ package com.fktimp.news.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 import org.json.JSONObject
 
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = VKAttachments::class,
+            parentColumns = arrayOf("wallParentAttachments"),
+            childColumns = arrayOf("wallParentSize"),
+            onDelete = ForeignKey.CASCADE
+        )]
+)
 data class VKSize(
-    val type: String = "",
-    val url: String = "",
-    val width: Int = 0,
-    val height: Int = 0
+    var type: String = "",
+    var url: String = "",
+    var width: Int = 0,
+    var height: Int = 0,
+    @PrimaryKey(autoGenerate = true)
+    var sizeId: Int,
+    var wallParentSize: Int = 0
+
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readInt(),
-        parcel.readInt()
+        parcel.readInt(), 0
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -41,7 +57,7 @@ data class VKSize(
             json.getString("type"),
             json.getString("url"),
             json.getInt("width"),
-            json.getInt("height")
+            json.getInt("height"), 0
         )
 
     }

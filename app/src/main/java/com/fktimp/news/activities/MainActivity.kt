@@ -3,6 +3,7 @@ package com.fktimp.news.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.LinearLayout
@@ -10,26 +11,30 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.R
 import com.fktimp.news.adapters.OnLoadMoreListener
+import com.fktimp.news.adapters.OnSaveWallPostClickListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
-import com.fktimp.news.fragments.GroupPickBottomSheet
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
+import com.fktimp.news.models.database.AppDatabase
+import com.fktimp.news.models.database.VKDao
 import com.fktimp.news.requests.NewsHelper
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
 
-    val allWallPosts: ArrayList<VKWallPostModel> = ArrayList()
+    private val allWallPosts: ArrayList<VKWallPostModel> = ArrayList()
     private val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
     private val pickedCategories: ArrayList<Int> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
     private val filteredWallPost: ArrayList<VKWallPostModel> = ArrayList()
-
+    lateinit var db: AppDatabase
+    lateinit var vkDao: VKDao
+    private val TAG = "MainActivityNK@("
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +47,8 @@ class MainActivity : AppCompatActivity() {
         NewsHelper.actualSources = NewsHelper.getSavedStringSets(this)
         initChips()
         initRecycler(savedInstanceState)
+        db = (applicationContext as VKApplication).getDb()
+        vkDao = db.getDao()
     }
 
 
@@ -58,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             filteredWallPost.add(VKWallPostModel())
         }
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = WallAdapter(this, filteredWallPost, groupsInfo)
+        adapter = WallAdapter(this, this, filteredWallPost, groupsInfo)
         recyclerView.adapter = adapter
 
         scrollListener = RecyclerViewLoadMoreScroll(LinearLayoutManager(this))
@@ -113,14 +120,23 @@ class MainActivity : AppCompatActivity() {
 
     fun updateRecyclerNewInfo(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
         deleteLoading()
-        val startPos = filteredWallPost.size
-        groupsInfo.addAll(groups)
-        groupsInfo.distinct()
-        allWallPosts.addAll(items)
-        val filteredItems =
-            if (pickedCategories.isNotEmpty()) items.filter { it.topic_id in pickedCategories } else items
-        filteredWallPost.addAll(filteredItems)
-        adapter.notifyItemRangeInserted(startPos, filteredItems.size)
+        Thread {
+            val savedWallPosts = vkDao.getSavedIds()
+            items.forEach {
+                if (it.post_id in savedWallPosts)
+                    it.isSaved = true
+            }
+            runOnUiThread {
+                val startPos = filteredWallPost.size
+                groupsInfo.addAll(groups)
+                groupsInfo.distinct()
+                allWallPosts.addAll(items)
+                val filteredItems =
+                    if (pickedCategories.isNotEmpty()) items.filter { it.topic_id in pickedCategories } else items
+                filteredWallPost.addAll(filteredItems)
+                adapter.notifyItemRangeInserted(startPos, filteredItems.size)
+            }
+        }.start()
     }
 
     private fun changeRecyclerCategories() {
@@ -166,12 +182,43 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.menu_change_sources -> {
-            GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
+//            GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
+            Thread {
+                Log.d(TAG, vkDao.getAll().toString())
+            }.start()
+            true
+        }
+        R.id.delete_db -> {
+            Thread { db.clearAllTables() }.start(); true
+        }
+        R.id.saved -> {
+            startActivity(Intent(this, SavedWallPostActivity::class.java))
             true
         }
         else -> super.onOptionsItemSelected(item)
     }
 
+    private fun insertInDb(wallPost: VKWallPostModel) {
+        Thread {
+            vkDao.godInsert(wallPost)
+        }.start()
+    }
+
+    private fun deleteFromDb(wallPost: VKWallPostModel) {
+        Thread {
+            vkDao.deleteWallPost(wallPost)
+        }.start()
+    }
+
+    override fun onSave(wallPost: VKWallPostModel, isNowChecked: Boolean) {
+        if (isNowChecked) {
+            wallPost.isSaved = true
+            insertInDb(wallPost)
+        } else {
+            wallPost.isSaved = false
+            deleteFromDb(wallPost)
+        }
+    }
 
     companion object {
         fun startFrom(context: Context) {

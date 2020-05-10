@@ -2,16 +2,32 @@ package com.fktimp.news.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.*
 import org.json.JSONObject
 
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = VKWallPostModel::class,
+            parentColumns = arrayOf("post_id"),
+            childColumns = arrayOf("wallParentAttachments"),
+            onDelete = ForeignKey.CASCADE
+        )],
+    indices = [Index(value = ["wallParentAttachments"], unique = true)]
+)
 data class VKAttachments(
-    val type: String,
-    val photo: List<VKSize>? = null,
-    val link: VKLink? = null
-) : Parcelable {
+    var type: String = "",
+    @Ignore
+    var photo: List<VKSize>? = null,
+    @Ignore
+    var link: VKLink? = null,
+    @PrimaryKey(autoGenerate = true)
+    var attachmentId: Int = 0,
+    var wallParentAttachments: Int = 0
+    ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
-        parcel.createTypedArrayList(VKSize.CREATOR) as ArrayList<VKSize>,
+        parcel.createTypedArrayList(VKSize.CREATOR),
         parcel.readParcelable(VKLink::class.java.classLoader)
     )
 

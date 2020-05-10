@@ -6,4 +6,6 @@
     <color name="linkColor">#0008ff</color>
     <color name="dividerColor">#FFFFFF</color>
     <color name="ic_color_link">#7A7A7A</color>
+    <color name="text_color_primary">@color/primary_text_default_material_light</color>
+    <color name="text_color_secondary">@color/secondary_text_default_material_light</color>
 </resources>
