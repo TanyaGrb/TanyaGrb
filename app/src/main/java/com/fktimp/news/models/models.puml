@@ -1,0 +1,77 @@
+@startuml
+interface Parcelable {
+    + constructor(Parcel)
+    + writeToParcel(Parcel, Int)
+    + describeContents(): Int
+    + companion object CREATOR
+}
+
+
+class VKAttachments {
+    + type: Sting
+    + photo: List<VKSize>?
+    + link: VKLink?
+    + attachmentId: Int
+    + wallParentAttachments: Int
+}
+
+
+class VKGroupModel {
+    + id: Int
+    + name: String
+    + photo_100: String
+    + isPicked: Boolean?
+}
+
+class VKLink {
+    + url: String
+    + title: String
+    + caption: String
+    + photo: List<VKSize>?
+    + linkId: Int
+    + wallParentLink: Int
+}
+
+class VKNewsModel {
+    + items: ArrayList<VKWallPostModel>
+    + groups: ArrayList<VKGroupModel>
+    + next_from: String?
+}
+
+class VKSize {
+    + type: String
+    + url: String
+    + width: Int
+    + height: Int
+    + sizeId: Int
+    + wallParentSize: Int
+}
+
+
+class VKWallPostModel {
+    + post_id: Int
+    + source_id: Int
+    + date: Long
+    + text: String
+    + reply_post_id: Int
+    + attachments: ArrayList<VKAttachments>?
+    + topic_id: Int
+    + isSaved: Boolean
+}
+
+
+VKLink --left> VKAttachments
+VKGroupModel --o VKNewsModel
+VKWallPostModel --o VKNewsModel
+VKSize --o VKLink
+VKSize --o VKAttachments
+VKAttachments --o VKWallPostModel
+
+VKAttachments ..|> Parcelable
+VKGroupModel ..|> Parcelable
+VKLink ..|> Parcelable
+VKNewsModel ..|> Parcelable
+VKWallPostModel ..left|> Parcelable
+VKSize ..|> Parcelable
+
+@enduml

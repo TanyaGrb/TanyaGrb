@@ -20,6 +20,11 @@ class SavedWallPostActivity : AppCompatActivity(), OnSaveWallPostClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_saved_wall_post)
+        setSupportActionBar(toolbar)
+        actionBar?.title = "Сохранённые записи"
+        supportActionBar?.title = "Сохранённые записи"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
         db = (applicationContext as VKApplication).getDb()
         vkDao = db.getDao()
         getDataFromDb()

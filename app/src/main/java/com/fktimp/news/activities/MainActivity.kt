@@ -182,14 +182,11 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.menu_change_sources -> {
-//            GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
+            GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
             Thread {
                 Log.d(TAG, vkDao.getAll().toString())
             }.start()
             true
-        }
-        R.id.delete_db -> {
-            Thread { db.clearAllTables() }.start(); true
         }
         R.id.saved -> {
             startActivity(Intent(this, SavedWallPostActivity::class.java))

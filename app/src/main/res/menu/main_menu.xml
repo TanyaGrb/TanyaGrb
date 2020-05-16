@@ -12,10 +12,5 @@
         android:title="@string/saved_wall_posts"
         android:icon="@drawable/ic_bookmark_saved_white"
         app:showAsAction="ifRoom"/>
-    <item
-        android:id="@+id/delete_db"
-        android:title="de"
-        app:showAsAction="ifRoom" />
-
 
 </menu>
