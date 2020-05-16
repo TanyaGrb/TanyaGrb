@@ -1,20 +1,27 @@
 package com.fktimp.news.models.database
 
 import androidx.room.*
-import com.fktimp.news.models.VKAttachments
-import com.fktimp.news.models.VKLink
-import com.fktimp.news.models.VKSize
-import com.fktimp.news.models.VKWallPostModel
+import com.fktimp.news.models.*
+import kotlin.math.abs
 
 @Dao
 interface VKDao {
 
     @Query("select * from vkwallpostmodel")
-    fun getAll(): List<VKWallPostAndAttachments>
+    fun getAllSavedWallPosts(): List<VKWallPostAndAttachments>
 
-    @Query("select * from vkattachments")
-    fun getAtt(): List<VKAttachments>
 
+    @Query("select * from vkgroupmodel")
+    fun getGroupInfo(): List<VKGroupModel>
+
+    @Query("select source_id from vkwallpostmodel")
+    fun getSavedGroupsId(): List<Int>
+
+    @Query("select * from vkgroupmodel where id==:passedId")
+    fun getGroupInfoById(passedId: Int): VKGroupModel
+
+    @Query("select vkWallPostId from vkwallpostmodel")
+    fun getSavedWallPostIds(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(vkWallPost: VKWallPostModel)
@@ -22,31 +29,8 @@ interface VKDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(vkAttachments: VKAttachments)
 
-
-    fun insertAttachments(vkAttachments: List<VKAttachments>?, postId: Int) {
-        if (vkAttachments != null)
-            for (vkAtt in vkAttachments)
-                if (vkAtt.type == "photo" || vkAtt.type == "link") {
-                    vkAtt.wallParentAttachments = postId
-                    insert(vkAtt)
-                }
-    }
-
-    fun insertLink(link: VKLink?, postId: Int) {
-        if (link != null) {
-            link.wallParentLink = postId
-            insert(link)
-            insertPhoto(link.photo, postId)
-        }
-    }
-
-    fun insertPhoto(photos: List<VKSize>?, postId: Int) {
-        if (photos != null)
-            for (photo in photos) {
-                photo.wallParentSize = postId
-                insert(photo)
-            }
-    }
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insert(vkGroupModel: VKGroupModel)
 
     @Insert
     fun insert(photo: VKSize)
@@ -54,20 +38,60 @@ interface VKDao {
     @Insert
     fun insert(link: VKLink)
 
+    fun insertAttachments(vkAttachments: List<VKAttachments>?, vkWallPostId: String) {
+        if (vkAttachments != null)
+            for (vkAtt in vkAttachments)
+                if (vkAtt.type == "photo" || vkAtt.type == "link") {
+                    vkAtt.wallParentAttachments = vkWallPostId
+                    insert(vkAtt)
+                }
+    }
+
+    fun insertLink(link: VKLink?, vkWallPostId: String) {
+        if (link != null) {
+            link.wallParentLink = vkWallPostId
+            insert(link)
+            insertPhoto(link.photo, vkWallPostId)
+        }
+    }
+
+    fun insertPhoto(photos: List<VKSize>?, vkWallPostId: String) {
+        if (photos != null)
+            for (photo in photos) {
+                photo.wallParentSize = vkWallPostId
+                insert(photo)
+            }
+    }
+
+
     @Transaction
-    fun godInsert(wallPost: VKWallPostModel) {
+    fun insertWallPost(wallPost: VKWallPostModel, vkGroupModel: VKGroupModel?) {
         insert(wallPost)
-        insertAttachments(wallPost.attachments, wallPost.post_id)
+        insertAttachments(wallPost.attachments, wallPost.vkWallPostId)
         if (wallPost.attachments != null)
             for (att in wallPost.attachments!!) {
-                insertPhoto(att.photo, wallPost.post_id)
-                insertLink(att.link, wallPost.post_id)
+                insertPhoto(att.photo, wallPost.vkWallPostId)
+                insertLink(att.link, wallPost.vkWallPostId)
             }
+        if (vkGroupModel != null)
+            insert(vkGroupModel)
     }
 
     @Delete
     fun deleteWallPost(wallPost: VKWallPostModel)
 
-    @Query("select post_id from vkwallpostmodel")
-    fun getSavedIds(): List<Int>
+    fun deletePost(wallPost: VKWallPostModel) {
+        val id = wallPost.source_id
+        deleteWallPost(wallPost)
+        if (id !in getSavedGroupsId())
+            deleteGroupById(id)
+    }
+
+
+    @Delete
+    fun deleteGroup(group: VKGroupModel)
+
+    fun deleteGroupById(id: Int) {
+        deleteGroup(getGroupInfoById(abs(id)))
+    }
 }

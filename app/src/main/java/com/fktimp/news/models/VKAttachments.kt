@@ -9,7 +9,7 @@ import org.json.JSONObject
     foreignKeys = [
         ForeignKey(
             entity = VKWallPostModel::class,
-            parentColumns = arrayOf("post_id"),
+            parentColumns = arrayOf("vkWallPostId"),
             childColumns = arrayOf("wallParentAttachments"),
             onDelete = ForeignKey.CASCADE
         )],
@@ -23,7 +23,7 @@ data class VKAttachments(
     var link: VKLink? = null,
     @PrimaryKey(autoGenerate = true)
     var attachmentId: Int = 0,
-    var wallParentAttachments: Int = 0
+    var wallParentAttachments: String = ""
     ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",

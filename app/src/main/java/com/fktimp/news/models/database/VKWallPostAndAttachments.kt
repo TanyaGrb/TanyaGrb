@@ -11,7 +11,7 @@ data class VKWallPostAndAttachments(
     @Embedded
     val postModel: VKWallPostModel,
     @Relation(
-        parentColumn = "post_id",
+        parentColumn = "vkWallPostId",
         entity = VKAttachments::class,
         entityColumn = "wallParentAttachments"
     )
@@ -22,12 +22,16 @@ data class VKWallPostAndAttachments(
         postModel.attachments = ArrayList()
         attachments.forEach {
             if (it.vkAttachments.type == "photo")
-                it.vkAttachments.photo = it.photo
+                for ((first, second) in it.photo?.splitByPair()!!) {
+                    postModel.attachments!!.add(
+                        it.vkAttachments.copy(photo = listOf(first as VKSize, second as VKSize))
+                    )
+                }
             else if (it.vkAttachments.type == "link") {
                 it.vkAttachments.link = it.link
                 it.vkAttachments.link!!.photo = it.photo
+                postModel.attachments!!.add(it.vkAttachments)
             }
-            postModel.attachments!!.add(it.vkAttachments)
         }
         return postModel
     }
@@ -49,3 +53,5 @@ data class PhotoAndLinkAttachment(
     )
     val link: VKLink?
 )
+
+fun List<Any>.splitByPair() = this.slice(0..lastIndex step 2).zip(this.slice(1..lastIndex step 2))

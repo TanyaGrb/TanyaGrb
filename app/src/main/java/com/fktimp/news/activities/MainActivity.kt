@@ -14,6 +14,7 @@ import com.fktimp.news.adapters.OnLoadMoreListener
 import com.fktimp.news.adapters.OnSaveWallPostClickListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
+import com.fktimp.news.fragments.GroupPickBottomSheet
 import com.fktimp.news.models.VKGroupModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.models.database.AppDatabase
@@ -22,6 +23,7 @@ import com.fktimp.news.requests.NewsHelper
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.math.abs
 
 
 class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
@@ -121,9 +123,9 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
     fun updateRecyclerNewInfo(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
         deleteLoading()
         Thread {
-            val savedWallPosts = vkDao.getSavedIds()
+            val savedWallPosts = vkDao.getSavedWallPostIds()
             items.forEach {
-                if (it.post_id in savedWallPosts)
+                if (it.vkWallPostId in savedWallPosts)
                     it.isSaved = true
             }
             runOnUiThread {
@@ -184,12 +186,15 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
         R.id.menu_change_sources -> {
             GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
             Thread {
-                Log.d(TAG, vkDao.getAll().toString())
+                Log.d(TAG, vkDao.getAllSavedWallPosts().toString())
             }.start()
             true
         }
         R.id.saved -> {
-            startActivity(Intent(this, SavedWallPostActivity::class.java))
+            startActivityForResult(
+                Intent(this, SavedWallPostActivity::class.java),
+                FAVORITE_REQUEST_CODE
+            )
             true
         }
         else -> super.onOptionsItemSelected(item)
@@ -197,13 +202,13 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
 
     private fun insertInDb(wallPost: VKWallPostModel) {
         Thread {
-            vkDao.godInsert(wallPost)
+            vkDao.insertWallPost(wallPost, groupsInfo.find { it.id == abs(wallPost.source_id) })
         }.start()
     }
 
     private fun deleteFromDb(wallPost: VKWallPostModel) {
         Thread {
-            vkDao.deleteWallPost(wallPost)
+            vkDao.deletePost(wallPost)
         }.start()
     }
 
@@ -215,6 +220,21 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
             wallPost.isSaved = false
             deleteFromDb(wallPost)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FAVORITE_REQUEST_CODE && resultCode == FAVORITE_UPDATE_CODE)
+            for (item in data?.getIntegerArrayListExtra(INTENT_EXTRA_NAME) ?: ArrayList()) {
+                var index = allWallPosts.indexOfFirst { it.post_id == item }
+                if (index == -1) continue
+                allWallPosts[index].isSaved = false
+                index = filteredWallPost.indexOfFirst { it.post_id == item }
+                if (index == -1) continue
+                filteredWallPost[index].isSaved = false
+                adapter.notifyItemChanged(index)
+            }
+
     }
 
     companion object {
@@ -236,5 +256,8 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
             "Юмор" to 32,
             "Стиль" to 43
         )
+        val FAVORITE_REQUEST_CODE = 0
+        val FAVORITE_UPDATE_CODE = 1
+        val INTENT_EXTRA_NAME = "deleted_ids"
     }
 }

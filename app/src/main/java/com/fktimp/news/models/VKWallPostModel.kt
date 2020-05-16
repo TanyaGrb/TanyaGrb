@@ -9,10 +9,9 @@ import androidx.room.PrimaryKey
 import org.json.JSONObject
 
 @Entity(
-    indices = [Index(value = ["post_id"], unique = true)]
+    indices = [Index(value = ["vkWallPostId"], unique = true)]
 )
 data class VKWallPostModel(
-    @PrimaryKey
     var post_id: Int = 0,
     var source_id: Int = 0,
     var date: Long = 0,
@@ -22,7 +21,9 @@ data class VKWallPostModel(
     var attachments: ArrayList<VKAttachments>? = null,
     var topic_id: Int = -1,
     @Ignore
-    var isSaved: Boolean = false
+    var isSaved: Boolean = false,
+    @PrimaryKey
+    var vkWallPostId: String = "${source_id}_$post_id"
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),

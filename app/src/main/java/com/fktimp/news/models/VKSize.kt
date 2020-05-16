@@ -23,7 +23,7 @@ data class VKSize(
     var height: Int = 0,
     @PrimaryKey(autoGenerate = true)
     var sizeId: Int,
-    var wallParentSize: Int = 0
+    var wallParentSize: String = ""
 
 ) : Parcelable {
     constructor(parcel: Parcel) : this(

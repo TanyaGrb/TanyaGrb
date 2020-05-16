@@ -23,7 +23,7 @@ data class VKLink(
     var photo: List<VKSize>? = null,
     @PrimaryKey(autoGenerate = true)
     var linkId: Int = 0,
-    var wallParentLink: Int = 0
+    var wallParentLink: String = ""
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",

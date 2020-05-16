@@ -2,12 +2,12 @@ package com.fktimp.news.models.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.fktimp.news.models.VKAttachments
-import com.fktimp.news.models.VKLink
-import com.fktimp.news.models.VKSize
-import com.fktimp.news.models.VKWallPostModel
+import com.fktimp.news.models.*
 
-@Database(entities = [ VKWallPostModel::class, VKAttachments::class, VKSize::class, VKLink::class], version = 3)
+@Database(
+    entities = [VKWallPostModel::class, VKAttachments::class, VKSize::class, VKLink::class, VKGroupModel::class],
+    version = 1
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun getDao(): VKDao
 }

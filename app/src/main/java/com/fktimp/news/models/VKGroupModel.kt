@@ -2,9 +2,13 @@ package com.fktimp.news.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import org.json.JSONObject
 
+@Entity
 data class VKGroupModel(
+    @PrimaryKey
     val id: Int,
     val name: String,
     val photo_100: String,
