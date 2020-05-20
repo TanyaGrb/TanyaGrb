@@ -1,8 +1,8 @@
 package com.fktimp.news.requests
 
 import android.content.Context
-import android.widget.Toast
-import com.fktimp.news.activities.MainActivity
+import android.util.Log
+import com.fktimp.news.NewsHelperInterface
 import com.fktimp.news.models.VKNewsModel
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
@@ -12,9 +12,21 @@ object NewsHelper {
     const val SOURCE_SET = "string_set_key"
     const val STOP = "STOP_CONST"
     val defaultSources =
-        arrayOf("-61559790", "-67531827", "-88384060", "-91150385", "-940543", "-192270804")
+        arrayOf(
+            "-61559790",
+            "-67531827",
+            "-88384060",
+            "-91150385",
+            "-940543",
+            "-192270804",
+            "-28905875"
+        )
     lateinit var actualSources: Set<String>
-    var next_from: String = ""
+    var next_from_news: String = ""
+    var next_from_search: String = ""
+    const val newsAtOnce = 15
+
+    fun isAllNews() = next_from_news == STOP
 
 
     fun saveDefaultSources(context: Context) {
@@ -54,29 +66,36 @@ object NewsHelper {
     }
 
 
-    fun getData(context: Context) {
-        if (next_from == STOP || actualSources.isEmpty()) {
-            (context as MainActivity).deleteLoading()
+    fun getNewsData(listener: NewsHelperInterface) {
+        Log.d("M_MainActivity", "getNewsData")
+        if (next_from_news == STOP || actualSources.isEmpty()) {
+            if (actualSources.isEmpty())
+                listener.showToast("Не выбран ни один источник.")
+            else
+                Log.d("M_MainActivity", "Нет новостей")
+            listener.onDeleteLoad()
             return
         }
         VK.execute(
-            VKNewsRequest(actualSources.joinToString(", "), 15, next_from),
+            VKNewsRequest(actualSources.joinToString(", "), newsAtOnce, next_from_news),
             object : VKApiCallback<VKNewsModel> {
                 override fun fail(error: Exception) {
-                    Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
+                    error.message?.let { listener.showToast(it) }
+                    listener.onError()
                 }
 
                 override fun success(result: VKNewsModel) {
-                    if (result.items.isEmpty() && next_from.isEmpty())
-                        Toast.makeText(
-                            context,
-                            "Новостей нет.Попробуйте изменить список источников.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    (context as MainActivity).updateRecyclerNewInfo(result.items, result.groups)
-                    next_from = if (result.next_from.isNullOrBlank()) STOP else result.next_from
-
+                    next_from_news =
+                        if (result.next_from.isNullOrBlank())
+                            STOP
+                        else result.next_from
+                    listener.onNewData(result.items, result.groups)
                 }
             })
     }
+
+    fun getSearchNews() {
+
+    }
+
 }

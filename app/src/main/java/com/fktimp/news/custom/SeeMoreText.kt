@@ -1,4 +1,4 @@
-package com.fktimp.news
+package com.fktimp.news.custom
 
 import android.content.Context
 import android.text.SpannableString
@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
+import com.fktimp.news.R
 
 
 class SeeMoreTextView : AppCompatTextView {

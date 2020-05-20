@@ -3,12 +3,15 @@ package com.fktimp.news.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.fktimp.news.NewsHelperInterface
 import com.fktimp.news.R
 import com.fktimp.news.adapters.OnLoadMoreListener
 import com.fktimp.news.adapters.OnSaveWallPostClickListener
@@ -26,16 +29,19 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.abs
 
 
-class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
+class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
+    NewsHelperInterface {
 
     private val allWallPosts: ArrayList<VKWallPostModel> = ArrayList()
     private val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
     private val pickedCategories: ArrayList<Int> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
-    private val filteredWallPost: ArrayList<VKWallPostModel> = ArrayList()
+    private val filteredWallPost: ArrayList<VKWallPostModel?> = ArrayList()
     lateinit var db: AppDatabase
     lateinit var vkDao: VKDao
+    private val handler: Handler = Handler()
+    private var runnable: Runnable? = null
     private val TAG = "MainActivityNK@("
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,25 +70,27 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
             else
                 filteredWallPost.addAll(allWallPosts)
         } else {
-            filteredWallPost.add(VKWallPostModel())
+            filteredWallPost.add(null)
         }
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = WallAdapter(this, this, filteredWallPost, groupsInfo)
         recyclerView.adapter = adapter
 
-        scrollListener = RecyclerViewLoadMoreScroll(LinearLayoutManager(this))
-        scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
-            override fun onLoadMore() {
-                scrollListener.isLoading = true
-                filteredWallPost.add(VKWallPostModel())
-                adapter.notifyItemInserted(filteredWallPost.size - 1)
-                NewsHelper.getData(this@MainActivity)
+        scrollListener =
+            RecyclerViewLoadMoreScroll(recyclerView.layoutManager as LinearLayoutManager).apply {
+                setOnLoadMoreListener(object : OnLoadMoreListener {
+                    override fun onLoadMore() {
+                        Log.d("M_MainActivity", "onLoadMore ${scrollListener.isLoading}")
+                        filteredWallPost.add(null)
+                        adapter.notifyItemInserted(filteredWallPost.lastIndex)
+                        NewsHelper.getNewsData(this@MainActivity)
+                    }
+                })
             }
-        })
         recyclerView.addOnScrollListener(scrollListener)
         if (savedInstanceState == null) {
             scrollListener.isLoading = true
-            NewsHelper.getData(this)
+            NewsHelper.getNewsData(this)
         }
         refresh_layout.setOnRefreshListener {
             updateFeed()
@@ -120,26 +128,6 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
         }
     }
 
-    fun updateRecyclerNewInfo(items: ArrayList<VKWallPostModel>, groups: ArrayList<VKGroupModel>) {
-        deleteLoading()
-        Thread {
-            val savedWallPosts = vkDao.getSavedWallPostIds()
-            items.forEach {
-                if (it.vkWallPostId in savedWallPosts)
-                    it.isSaved = true
-            }
-            runOnUiThread {
-                val startPos = filteredWallPost.size
-                groupsInfo.addAll(groups)
-                groupsInfo.distinct()
-                allWallPosts.addAll(items)
-                val filteredItems =
-                    if (pickedCategories.isNotEmpty()) items.filter { it.topic_id in pickedCategories } else items
-                filteredWallPost.addAll(filteredItems)
-                adapter.notifyItemRangeInserted(startPos, filteredItems.size)
-            }
-        }.start()
-    }
 
     private fun changeRecyclerCategories() {
         filteredWallPost.clear()
@@ -148,25 +136,24 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
         else
             filteredWallPost.addAll(allWallPosts.filter { it.topic_id in pickedCategories })
         adapter.notifyDataSetChanged()
+        isAllNewsGot()
     }
 
-    fun deleteLoading() {
-        if (!scrollListener.isLoading) {
-            return
-        }
-        filteredWallPost.removeAt(filteredWallPost.size - 1)
+    private fun deleteLoading() {
+        Log.d("M_MainActivity", "deleteLoading ${scrollListener.isLoading}")
+        if (!scrollListener.isLoading && filteredWallPost[filteredWallPost.lastIndex] != null) return
+        filteredWallPost.removeAt(filteredWallPost.lastIndex)
         adapter.notifyItemRemoved(filteredWallPost.size)
-        scrollListener.setLoaded()
     }
 
     fun updateFeed() {
-        NewsHelper.next_from = ""
+        NewsHelper.next_from_news = ""
         allWallPosts.clear()
         filteredWallPost.clear()
-        filteredWallPost.add(VKWallPostModel())
+        filteredWallPost.add(null)
         adapter.notifyDataSetChanged()
         scrollListener.isLoading = true
-        NewsHelper.getData(this)
+        NewsHelper.getNewsData(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -195,6 +182,10 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
                 Intent(this, SavedWallPostActivity::class.java),
                 FAVORITE_REQUEST_CODE
             )
+            true
+        }
+        R.id.search -> {
+            SearchActivity.startFrom(this)
             true
         }
         else -> super.onOptionsItemSelected(item)
@@ -229,12 +220,72 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener {
                 var index = allWallPosts.indexOfFirst { it.post_id == item }
                 if (index == -1) continue
                 allWallPosts[index].isSaved = false
-                index = filteredWallPost.indexOfFirst { it.post_id == item }
+                index = filteredWallPost.indexOfFirst { it?.post_id == item }
                 if (index == -1) continue
-                filteredWallPost[index].isSaved = false
+                filteredWallPost[index]?.isSaved = false
                 adapter.notifyItemChanged(index)
             }
 
+    }
+
+    override fun onDeleteLoad() {
+        deleteLoading()
+        scrollListener.setLoaded()
+    }
+
+
+    override fun showToast(text: String) = Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+
+
+    override fun onNewData(
+        items: List<VKWallPostModel>,
+        groupInfo: List<VKGroupModel>
+    ) {
+        Log.d("M_MainActivity", "onNewData")
+        deleteLoading()
+        Thread {
+            val savedWallPosts = vkDao.getSavedWallPostIds()
+            items.forEach {
+                if (it.vkWallPostId in savedWallPosts)
+                    it.isSaved = true
+            }
+            runOnUiThread {
+                val startPos = filteredWallPost.size
+                groupsInfo.addAll(groupInfo)
+                groupsInfo.distinct()
+                allWallPosts.addAll(items)
+                val filteredItems =
+                    if (pickedCategories.isNotEmpty()) items.filter { it.topic_id in pickedCategories } else items
+                filteredWallPost.addAll(filteredItems)
+                adapter.notifyItemRangeInserted(startPos, filteredItems.size)
+                Log.d("M_MainActivity", "size = ${filteredWallPost.size}")
+                scrollListener.setLoaded()
+                isAllNewsGot(needToUpdate = filteredItems.isEmpty())
+            }
+        }.start()
+    }
+
+    override fun onError() {
+        Log.d("M_MainActivity", "on error")
+        runnable?.let { handler.removeCallbacks(it) }
+        runnable = Runnable { onDeleteLoad() }
+        runnable?.let { handler.postDelayed(it, 2000) }
+    }
+
+    private fun isAllNewsGot(needToUpdate: Boolean = false) {
+        if ((filteredWallPost.size < NewsHelper.newsAtOnce || needToUpdate) && !NewsHelper.isAllNews()) {
+            scrollListener.callOnLoadMore()
+            scrollListener.isLoading = true
+        } else if (NewsHelper.isAllNews())
+            onLastPage()
+    }
+
+    private fun onLastPage() {
+        //todo показывать фото
+        if (filteredWallPost.isEmpty()) {
+            Log.d("M_MainActivity", "показывать фото")
+        } else
+            Log.d("M_MainActivity", "Новостей больше нет")
     }
 
     companion object {

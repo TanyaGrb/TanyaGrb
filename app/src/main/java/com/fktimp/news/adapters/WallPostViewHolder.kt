@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.fktimp.news.R
-import com.fktimp.news.SeeMoreTextView
+import com.fktimp.news.custom.SeeMoreTextView
 import com.fktimp.news.models.*
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap

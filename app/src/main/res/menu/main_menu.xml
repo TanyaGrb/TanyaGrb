@@ -2,15 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/saved"
+        android:icon="@drawable/ic_bookmark_saved_white"
+        android:title="@string/saved_wall_posts"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/menu_change_sources"
         android:icon="@drawable/ic_sources_white"
         android:title="@string/change_sources"
         app:showAsAction="ifRoom" />
-
     <item
-        android:id="@+id/saved"
-        android:title="@string/saved_wall_posts"
-        android:icon="@drawable/ic_bookmark_saved_white"
-        app:showAsAction="ifRoom"/>
-
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search_black"
+        android:title="Поиск"
+        app:showAsAction="ifRoom" />
 </menu>

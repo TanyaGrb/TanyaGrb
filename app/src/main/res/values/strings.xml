@@ -18,5 +18,7 @@
     <string name="link_title_example">Заголовок ссылки</string>
     <string name="link_caption_example">example.com</string>
     <string name="saved_wall_posts">Сохранённые записи</string>
+    <string name="search">Поиск</string>
+    <string name="not_found_icon">not_found_icon</string>
     <!---->
 </resources>

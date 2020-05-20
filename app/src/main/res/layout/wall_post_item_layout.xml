@@ -65,7 +65,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.fktimp.news.SeeMoreTextView
+        <com.fktimp.news.custom.SeeMoreTextView
             android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

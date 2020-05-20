@@ -1,4 +1,4 @@
-package com.fktimp.news
+package com.fktimp.news.custom
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -32,7 +32,7 @@ fun customAddLinks(
 ) {
     val isVKExists = VKState.isVKExist
     val spannable = SpannableStringBuilder.valueOf(textView.text)
-    val patternVK = Pattern.compile("""\[(club|id)\d+\|(.)+]""")
+    val patternVK = Pattern.compile("""\[(club|id)\d+\|[^]]+]""")
     val patternURL = AUTOLINK_WEB_URL
     val patternEmail = AUTOLINK_EMAIL_ADDRESS
     val result = addLinksByPattern(
@@ -90,7 +90,12 @@ fun addLinksByPattern(
         val end = m.end()
         val result: String = m.group(0) ?: ""
         val url = if (isVK) {
-            getVKUrl(result.substring(1, result.indexOf("|")), isVKExists)
+            getVKUrl(
+                result.substring(
+                    1,
+                    result.indexOf("|")
+                ), isVKExists
+            )
         } else {
             makeUrl(result, prefixes)
         }
@@ -99,7 +104,12 @@ fun addLinksByPattern(
 
         localSpannable = localSpannable.replace(start, end, txt)
         if (isVK) m = pattern.matcher(localSpannable)
-        customApplyLink(url, start, start + txt.length, localSpannable)
+        customApplyLink(
+            url,
+            start,
+            start + txt.length,
+            localSpannable
+        )
         flag = true
     }
     return flag
