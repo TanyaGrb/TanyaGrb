@@ -7,12 +7,12 @@ import org.json.JSONObject
 data class VKNewsModel(
     val items: ArrayList<VKWallPostModel> = ArrayList(),
     val groups: ArrayList<VKGroupModel> = ArrayList(),
-    val next_from: String?
+    val next_from: String
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.createTypedArrayList(VKWallPostModel.CREATOR) as ArrayList<VKWallPostModel>,
         parcel.createTypedArrayList(VKGroupModel.CREATOR) as ArrayList<VKGroupModel>,
-        parcel.readString()
+        parcel.readString() ?: ""
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -41,7 +41,7 @@ data class VKNewsModel(
             List(
                 json.getJSONArray("groups").length()
             ) { VKGroupModel.parse(json.getJSONArray("groups")[it] as JSONObject) } as ArrayList<VKGroupModel>,
-            json.optString("next_from", "")
+            json.optString("next_from")
         )
 
     }

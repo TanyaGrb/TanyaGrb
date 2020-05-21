@@ -3,7 +3,7 @@ package com.fktimp.news.requests
 import android.content.Context
 import android.util.Log
 import com.fktimp.news.NewsHelperInterface
-import com.fktimp.news.models.VKNewsModel
+import com.fktimp.news.models.*
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
 
@@ -24,9 +24,20 @@ object NewsHelper {
     lateinit var actualSources: Set<String>
     var next_from_news: String = ""
     var next_from_search: String = ""
+
     const val newsAtOnce = 15
 
+    enum class Next { NEWS, SEARCH }
+
+    fun clearNext(next: Next) {
+        when (next) {
+            Next.NEWS -> next_from_news = ""
+            Next.SEARCH -> next_from_search = ""
+        }
+    }
+
     fun isAllNews() = next_from_news == STOP
+    fun isAllNewsSearch() = next_from_search == STOP
 
 
     fun saveDefaultSources(context: Context) {
@@ -86,7 +97,7 @@ object NewsHelper {
 
                 override fun success(result: VKNewsModel) {
                     next_from_news =
-                        if (result.next_from.isNullOrBlank())
+                        if (result.next_from.isBlank())
                             STOP
                         else result.next_from
                     listener.onNewData(result.items, result.groups)
@@ -94,8 +105,41 @@ object NewsHelper {
             })
     }
 
-    fun getSearchNews() {
+    fun getSearchNews(q: String, listener: NewsHelperInterface) {
+        Log.d("M_SearchActivity", "next = $next_from_search")
+        if (next_from_search == STOP) {
+            Log.d("M_SearchActivity", "Нет новостей")
+            listener.onDeleteLoad()
+            return
+        }
+        VK.execute(
+            VKNewsSearch(q, 10, next_from_search), object : VKApiCallback<VKSearchModel> {
+                override fun fail(error: Exception) {
+                    error.message?.let { listener.showToast(it) }
+                    Log.d("M_SearchActivity", error.message ?: "error")
+                    listener.onError()
+                }
 
+                override fun success(result: VKSearchModel) {
+                    next_from_search = if (result.next_from.isBlank()) STOP else result.next_from
+                    val srcInfo = ArrayList<VKGroupModel>()
+                    result.profiles?.let {
+                        it.forEach { profile ->
+                            srcInfo.add(VKProfileSearch.toVKGroupModel(profile))
+                        }
+                    }
+                    result.groups?.let {
+                        it.forEach { group ->
+                            srcInfo.add(VKGroupsSearch.toVKGroupModel(group))
+                        }
+                    }
+                    listener.onNewData(
+                        List(result.items.size) { VKSearchNewsModel.toVKWallPostModel(result.items[it]) },
+                        srcInfo
+                    )
+                }
+            }
+        )
     }
 
 }

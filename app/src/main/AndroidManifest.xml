@@ -15,7 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".activities.SavedWallPostActivity"></activity>
+        <activity
+            android:name=".activities.SearchActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".activities.SavedWallPostActivity" />
         <activity
             android:name=".activities.WelcomeActivity"
             android:launchMode="singleInstance"

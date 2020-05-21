@@ -2,10 +2,10 @@ package com.fktimp.news.adapters
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.fktimp.news.requests.NewsHelper
 
 interface OnLoadMoreListener {
     fun onLoadMore()
+    fun extraCondition(): Boolean
 }
 
 class RecyclerViewLoadMoreScroll(layoutManager: LinearLayoutManager) :
@@ -17,6 +17,7 @@ class RecyclerViewLoadMoreScroll(layoutManager: LinearLayoutManager) :
     private var lastVisibleItem: Int = 0
     private var totalItemCount: Int = 0
     private var mLayoutManager: RecyclerView.LayoutManager = layoutManager
+
 
     fun setLoaded() {
         isLoading = false
@@ -31,11 +32,11 @@ class RecyclerViewLoadMoreScroll(layoutManager: LinearLayoutManager) :
 
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
-//        if (dy <= 0) return
+        if (dy <= 0) return
         totalItemCount = mLayoutManager.itemCount
         lastVisibleItem = (mLayoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-//        Log.d("M_MainActivity", "$totalItemCount last = $lastVisibleItem")
-        if (!isLoading && totalItemCount <= lastVisibleItem + visibleThreshold && !NewsHelper.isAllNews()) {
+//        Log.d("M_SearchActivity", "$totalItemCount last = $lastVisibleItem")
+        if (!isLoading && totalItemCount <= lastVisibleItem + visibleThreshold && mOnLoadMoreListener.extraCondition()) {
             mOnLoadMoreListener.onLoadMore()
             isLoading = true
         }

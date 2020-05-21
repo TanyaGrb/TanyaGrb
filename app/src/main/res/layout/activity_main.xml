@@ -21,8 +21,6 @@
 
         <View style="@style/Divider" />
 
-
-
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refresh_layout"
             android:layout_width="match_parent"
