@@ -7,6 +7,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
                     override fun onLoadMore() {
                         Log.d("M_MainActivity", "onLoadMore ${scrollListener.isLoading}")
                         filteredWallPost.add(null)
-                        adapter.notifyItemInserted(filteredWallPost.lastIndex)
+                        recyclerView.post { adapter.notifyItemInserted(filteredWallPost.size) }
                         NewsHelper.getNewsData(this@MainActivity)
                     }
 
@@ -132,6 +133,7 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
 
 
     private fun changeRecyclerCategories() {
+        hidePhoto()
         filteredWallPost.clear()
         if (pickedCategories.isEmpty())
             filteredWallPost.addAll(allWallPosts)
@@ -149,6 +151,7 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
     }
 
     fun updateFeed() {
+        hidePhoto()
         NewsHelper.clearNext(NewsHelper.Next.NEWS)
         allWallPosts.clear()
         filteredWallPost.clear()
@@ -282,11 +285,21 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
     }
 
     private fun onLastPage() {
-        //todo показывать фото
         if (filteredWallPost.isEmpty()) {
             Log.d("M_MainActivity", "показывать фото")
+            showPhoto()
         } else
             Log.d("M_MainActivity", "Новостей больше нет")
+    }
+
+    private fun showPhoto() {
+        recyclerView.visibility = View.GONE
+        image_nf.visibility = View.VISIBLE
+    }
+
+    private fun hidePhoto() {
+        recyclerView.visibility = View.VISIBLE
+        image_nf.visibility = View.GONE
     }
 
     companion object {
@@ -295,21 +308,23 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
             context.startActivity(intent)
         }
 
-        private val topicTitles = mapOf(
-            "Арт" to 1,
-            "IT" to 7,
-            "Игры" to 12,
-            "Музыка" to 16,
-            "Фото" to 19,
-            "Наука" to 21,
-            "Спорт" to 23,
-            "Туризм" to 25,
-            "Кино" to 26,
-            "Юмор" to 32,
-            "Стиль" to 43
-        )
-        val FAVORITE_REQUEST_CODE = 0
-        val FAVORITE_UPDATE_CODE = 1
-        val INTENT_EXTRA_NAME = "deleted_ids"
+        private val topicTitles by lazy {
+            mapOf(
+                "Арт" to 1,
+                "IT" to 7,
+                "Игры" to 12,
+                "Музыка" to 16,
+                "Фото" to 19,
+                "Наука" to 21,
+                "Спорт" to 23,
+                "Туризм" to 25,
+                "Кино" to 26,
+                "Юмор" to 32,
+                "Стиль" to 43
+            )
+        }
+        const val FAVORITE_REQUEST_CODE = 0
+        const val FAVORITE_UPDATE_CODE = 1
+        const val INTENT_EXTRA_NAME = "deleted_ids"
     }
 }

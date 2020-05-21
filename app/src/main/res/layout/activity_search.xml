@@ -40,6 +40,16 @@
             android:layout_height="match_parent"
             android:overScrollMode="never"
             tools:listitem="@layout/wall_post_item_layout" />
+
+        <ImageView
+            android:id="@+id/image_search_nf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="@string/not_found_icon"
+            android:src="@drawable/ic_not_found"
+            android:layout_margin="16dp"
+            android:visibility="gone" />
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

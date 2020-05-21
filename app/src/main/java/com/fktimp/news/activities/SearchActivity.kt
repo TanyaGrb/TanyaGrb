@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -53,7 +54,7 @@ class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHel
                     override fun onLoadMore() {
                         Log.d("M_SearchActivity", "onLoadMore ${scrollListener.isLoading}")
                         allWallPosts.add(null)
-                        adapter.notifyItemInserted(allWallPosts.lastIndex)
+                        recycler_view_search.post { adapter.notifyItemInserted(allWallPosts.size) }
                         NewsHelper.getSearchNews(search_view.query.toString(), this@SearchActivity)
                     }
 
@@ -73,6 +74,7 @@ class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHel
 
     private fun getData(q: String) {
         if (q.isBlank()) return
+        hidePhoto()
         NewsHelper.clearNext(NewsHelper.Next.SEARCH)
         val countOfWallPosts = allWallPosts.size
         allWallPosts.clear()
@@ -114,9 +116,12 @@ class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHel
                 adapter.notifyItemRangeInserted(startPos, items.size)
                 Log.d("M_SearchActivity", "size = ${allWallPosts.size}")
                 scrollListener.setLoaded()
+                if (allWallPosts.isEmpty())
+                    showPhoto()
             }
         }.start()
     }
+
 
     override fun onError() {
         Log.d("M_SearchActivity", "onError")
@@ -152,13 +157,20 @@ class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHel
         intent?.let { search_view.setQuery(it.getStringExtra("q"), true) }
     }
 
+    private fun showPhoto() {
+        recycler_view_search.visibility = View.GONE
+        image_search_nf.visibility = View.VISIBLE
+    }
+
+    private fun hidePhoto() {
+        recycler_view_search.visibility = View.VISIBLE
+        image_search_nf.visibility = View.GONE
+    }
+
     companion object {
         fun startFrom(context: Context, q: String = "") {
             context.startActivity(Intent(context, SearchActivity::class.java).apply {
-                putExtra(
-                    "q",
-                    q
-                )
+                putExtra("q", q)
             })
         }
     }
