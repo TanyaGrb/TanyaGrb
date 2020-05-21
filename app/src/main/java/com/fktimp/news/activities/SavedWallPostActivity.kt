@@ -2,6 +2,7 @@ package com.fktimp.news.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.R
@@ -52,10 +53,12 @@ class SavedWallPostActivity : AppCompatActivity(), OnSaveWallPostClickListener {
 
     private fun initRecyclerView() {
         wallAdapter = WallAdapter(this, this, wallPosts, groupsInfo)
-        recycler_view.apply {
+        saved_recycler_view.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = wallAdapter
         }
+        if (wallPosts.isEmpty())
+            showPhoto()
     }
 
     private fun deleteWallPostFromDb(wallPost: VKWallPostModel) {
@@ -74,7 +77,19 @@ class SavedWallPostActivity : AppCompatActivity(), OnSaveWallPostClickListener {
             setResult(
                 MainActivity.FAVORITE_UPDATE_CODE,
                 Intent().apply { putExtra(MainActivity.INTENT_EXTRA_NAME, deletedPosts) })
+            if (wallPosts.isEmpty())
+                showPhoto()
         }
+    }
+
+    private fun showPhoto() {
+        saved_recycler_view.visibility = View.GONE
+        saved_image_nf.visibility = View.VISIBLE
+    }
+
+    private fun hidePhoto() {
+        saved_recycler_view.visibility = View.VISIBLE
+        saved_image_nf.visibility = View.GONE
     }
 
     override fun onSupportNavigateUp(): Boolean {
