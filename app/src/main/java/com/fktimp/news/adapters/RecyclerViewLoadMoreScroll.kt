@@ -27,7 +27,10 @@ class RecyclerViewLoadMoreScroll(layoutManager: LinearLayoutManager) :
         this.mOnLoadMoreListener = mOnLoadMoreListener
     }
 
-    fun callOnLoadMore() = mOnLoadMoreListener.onLoadMore()
+    fun callOnLoadMore() {
+        isLoading = true
+        mOnLoadMoreListener.onLoadMore()
+    }
 
 
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -37,8 +40,7 @@ class RecyclerViewLoadMoreScroll(layoutManager: LinearLayoutManager) :
         lastVisibleItem = (mLayoutManager as LinearLayoutManager).findLastVisibleItemPosition()
 //        Log.d("M_SearchActivity", "$totalItemCount last = $lastVisibleItem")
         if (!isLoading && totalItemCount <= lastVisibleItem + visibleThreshold && mOnLoadMoreListener.extraCondition()) {
-            mOnLoadMoreListener.onLoadMore()
-            isLoading = true
+            callOnLoadMore()
         }
     }
 }

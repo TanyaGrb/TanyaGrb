@@ -23,7 +23,7 @@ import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.link_layout.view.*
 import kotlinx.android.synthetic.main.wall_post_item_layout.view.*
 import kotlinx.android.synthetic.main.wall_post_item_layout.view.link
-import kotlinx.android.synthetic.main.wall_post_item_layout.view.link_title
+import kotlinx.android.synthetic.main.wall_post_item_layout.view.src_title
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -31,15 +31,15 @@ import kotlin.math.roundToInt
 class WallPostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private var date: TextView = itemView.date
     private var text: SeeMoreTextView = itemView.text
-    private var title: TextView = itemView.link_title
+    private var title: TextView = itemView.src_title
     private var photo: ImageView = itemView.photo
     private var photoLayout: FlexboxLayout = itemView.flex_layout
     private var link: ConstraintLayout = itemView.link as ConstraintLayout
     private var mainLayout: LinearLayout = itemView.main_layout as LinearLayout
-    private var linkTitle: TextView = link.link_title
+    private var linkTitle: TextView = link.src_title
     private var linkCaption: TextView = link.caption
     private var linkImage: ImageView = link.link_image
-    private var saveToggle: ToggleButton = itemView.addButton
+    private var saveToggle: ToggleButton = itemView.add_button
 
     init {
         photoLayout.flexDirection = FlexDirection.ROW
