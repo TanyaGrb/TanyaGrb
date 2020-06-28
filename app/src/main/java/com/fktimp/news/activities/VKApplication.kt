@@ -7,10 +7,10 @@ import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKTokenExpiredHandler
 
 
-lateinit var instance: VKApplication
-var database: AppDatabase? = null
-
 class VKApplication : Application() {
+    lateinit var instance: VKApplication
+    var database: AppDatabase? = null
+
     override fun onCreate() {
         super.onCreate()
         instance = this

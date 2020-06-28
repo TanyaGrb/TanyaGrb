@@ -6,18 +6,18 @@ import org.json.JSONObject
 
 data class VKNewsModel(
     val items: ArrayList<VKWallPostModel> = ArrayList(),
-    val groups: ArrayList<VKGroupModel> = ArrayList(),
+    val sources: ArrayList<VKSourceModel> = ArrayList(),
     val next_from: String
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.createTypedArrayList(VKWallPostModel.CREATOR) as ArrayList<VKWallPostModel>,
-        parcel.createTypedArrayList(VKGroupModel.CREATOR) as ArrayList<VKGroupModel>,
+        parcel.createTypedArrayList(VKSourceModel.CREATOR) as ArrayList<VKSourceModel>,
         parcel.readString() ?: ""
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeTypedList(items)
-        parcel.writeTypedList(groups)
+        parcel.writeTypedList(sources)
         parcel.writeString(next_from)
     }
 
@@ -34,15 +34,22 @@ data class VKNewsModel(
             return arrayOfNulls(size)
         }
 
-        fun parse(json: JSONObject): VKNewsModel = VKNewsModel(
-            List(
-                json.getJSONArray("items").length()
-            ) { VKWallPostModel.parse(json.getJSONArray("items")[it] as JSONObject) } as ArrayList<VKWallPostModel>,
-            List(
-                json.getJSONArray("groups").length()
-            ) { VKGroupModel.parse(json.getJSONArray("groups")[it] as JSONObject) } as ArrayList<VKGroupModel>,
-            json.optString("next_from")
-        )
+        fun parse(json: JSONObject): VKNewsModel {
+            val sources: ArrayList<VKSourceModel> = ArrayList()
+            val profiles = json.optJSONArray("profiles")
+            val groups = json.optJSONArray("groups")
 
+            for (index in 0 until (profiles?.length() ?: 0))
+                sources.add(VKSourceModel.parseProfile(profiles!![index] as JSONObject))
+            for (index in 0 until (groups?.length() ?: 0))
+                sources.add(VKSourceModel.parseGroup(groups!![index] as JSONObject))
+            val itemsJson = json.getJSONArray("items")
+            return VKNewsModel(
+                items = List(itemsJson.length())
+                { VKWallPostModel.parse(itemsJson[it] as JSONObject) } as ArrayList<VKWallPostModel>,
+                sources = sources,
+                next_from = json.optString("next_from")
+            )
+        }
     }
 }

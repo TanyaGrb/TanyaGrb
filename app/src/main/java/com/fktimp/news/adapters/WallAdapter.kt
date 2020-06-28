@@ -2,6 +2,7 @@ package com.fktimp.news.adapters
 
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Point
 import android.view.Display
 import android.view.LayoutInflater
@@ -12,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.fktimp.news.R
 import com.fktimp.news.activities.VKState
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import com.fktimp.news.models.VKWallPostModel
 
 
@@ -37,7 +38,7 @@ class WallAdapter(
     activity: Activity,
     private val clickListener: OnSaveWallPostClickListener,
     private var items: List<VKWallPostModel?>,
-    private var groupsInfo: List<VKGroupModel>
+    private var srcInfo: List<VKSourceModel>
 ) : RecyclerView.Adapter<ViewHolder>() {
 
     init {
@@ -82,21 +83,26 @@ class WallAdapter(
             return
         }
         if (holder !is WallPostViewHolder) return
-        val wallPost: VKWallPostModel? = items[position]
-        val currentGroup =
-            groupsInfo.find { it.id == kotlin.math.abs(wallPost?.source_id ?: 0) }
-        holder.bind(wallPost, currentGroup, clickListener)
+        val wallPost: VKWallPostModel = items[position] ?: return
+        holder.bind(wallPost, srcInfo, clickListener)
     }
 
     companion object {
         private const val VIEW_TYPE_ITEM = 0
         const val VIEW_TYPE_LOADING = 1
         var screenWidth: Int = 0
+            set(value) {
+                repostScreenWidth = value - dpToPx(32)
+                field = value
+            }
         var screenHeight: Int = 0
+        var repostScreenWidth: Int = 0
         private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
 
         // к каждой стороне будет по разделителю, поэтому эта переменная в два раза меньше
         const val DIVIDER_WIDTH = 2
+        fun dpToPx(dp: Int) = (dp * Resources.getSystem().displayMetrics.density).toInt()
+
     }
 }
 

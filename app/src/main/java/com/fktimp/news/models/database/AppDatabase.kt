@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.fktimp.news.models.*
 
 @Database(
-    entities = [VKWallPostModel::class, VKAttachments::class, VKSize::class, VKLink::class, VKGroupModel::class],
+    entities = [VKWallPostModel::class, VKAttachments::class, VKSize::class, VKLink::class, VKSourceModel::class],
     version = 1
 )
 abstract class AppDatabase : RoomDatabase() {

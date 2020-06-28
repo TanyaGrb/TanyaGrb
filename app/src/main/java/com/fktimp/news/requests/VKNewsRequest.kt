@@ -13,6 +13,6 @@ class VKNewsRequest(sources: String, count: Int, start_from: String) :
         addParam("count", count)
         addParam("start_from", start_from)
     }
-
     override fun parse(r: JSONObject): VKNewsModel = VKNewsModel.parse(r.getJSONObject("response"))
 }
+

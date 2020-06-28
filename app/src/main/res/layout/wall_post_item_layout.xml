@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginBottom="8dp">
 
     <LinearLayout
@@ -19,24 +19,24 @@
 
             <ImageView
                 android:id="@+id/photo"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                tools:src="@drawable/ic_group"
                 android:contentDescription="@string/description_group_photo_100"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/ic_group" />
 
             <TextView
-                android:id="@+id/link_title"
+                android:id="@+id/src_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:maxLines="1"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@+id/addButton"
+                app:layout_constraintEnd_toStartOf="@+id/add_button"
                 app:layout_constraintStart_toEndOf="@+id/photo"
                 app:layout_constraintTop_toTopOf="@+id/photo"
                 tools:text="@string/group_title_example" />
@@ -46,13 +46,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                tools:text="@string/post_date_example"
                 app:layout_constraintBottom_toBottomOf="@+id/photo"
                 app:layout_constraintStart_toEndOf="@+id/photo"
-                app:layout_constraintTop_toBottomOf="@+id/link_title" />
+                app:layout_constraintTop_toBottomOf="@+id/src_title"
+                tools:text="@string/post_date_example" />
 
             <androidx.appcompat.widget.AppCompatToggleButton
-                android:id="@+id/addButton"
+                android:id="@+id/add_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
@@ -64,6 +64,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <com.fktimp.news.custom.SeeMoreTextView
             android:id="@+id/text"
@@ -83,13 +84,102 @@
             app:alignItems="stretch"
             app:flexWrap="wrap" />
 
+        <LinearLayout
+            android:id="@+id/repost_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:background="@color/text_color_secondary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/repost_sign"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"
+                        android:contentDescription="@string/repost_icon"
+                        android:src="@drawable/ic_repost"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/repost_photo"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@string/description_group_photo_100"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/repost_sign"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:src="@drawable/ic_group" />
+
+                    <TextView
+                        android:id="@+id/repost_src_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="16dp"
+                        android:maxLines="1"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/repost_photo"
+                        app:layout_constraintTop_toTopOf="@+id/repost_photo"
+                        tools:text="@string/group_title_example" />
+
+                    <TextView
+                        android:id="@+id/repost_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintBottom_toBottomOf="@+id/repost_photo"
+                        app:layout_constraintStart_toEndOf="@+id/repost_photo"
+                        app:layout_constraintTop_toBottomOf="@+id/repost_src_title"
+                        tools:text="@string/post_date_example" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <com.fktimp.news.custom.SeeMoreTextView
+                    android:id="@+id/repost_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="8dp"
+                    tools:text="@string/post_text_example2" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/repost_flex_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:alignContent="stretch"
+                    app:alignItems="stretch"
+                    app:flexWrap="wrap" />
+            </LinearLayout>
+        </LinearLayout>
+
         <include
             android:id="@+id/link"
             layout="@layout/link_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp" />
-
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

@@ -16,35 +16,38 @@ data class VKWallPostModel(
     var source_id: Int = 0,
     var date: Long = 0,
     var text: String = "",
-    var reply_post_id: Int = 0,
     @Ignore
     var attachments: ArrayList<VKAttachments>? = null,
     var topic_id: Int = -1,
     @Ignore
     var isSaved: Boolean = false,
     @PrimaryKey
-    var vkWallPostId: String = "${source_id}_$post_id"
+    var vkWallPostId: String = "${source_id}_$date",
+    @Ignore
+    var copy_history: ArrayList<VKWallPostModel>? = null
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readInt(),
-        parcel.readLong(),
-        parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.createTypedArrayList(VKAttachments.CREATOR),
-        parcel.readInt(),
-        parcel.readBoolean()
+        post_id = parcel.readInt(),
+        source_id = parcel.readInt(),
+        date = parcel.readLong(),
+        text = parcel.readString() ?: "",
+        attachments = parcel.createTypedArrayList(VKAttachments.CREATOR),
+        topic_id = parcel.readInt(),
+        vkWallPostId = parcel.readString() ?: "",
+        copy_history = parcel.createTypedArrayList(CREATOR)
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(post_id)
-        parcel.writeInt(source_id)
-        parcel.writeLong(date)
-        parcel.writeString(text)
-        parcel.writeInt(reply_post_id)
-        parcel.writeTypedList(attachments)
-        parcel.writeInt(topic_id)
-        parcel.writeBoolean(isSaved)
+        with(parcel) {
+            writeInt(post_id)
+            writeInt(source_id)
+            writeLong(date)
+            writeString(text)
+            writeTypedList(attachments)
+            writeInt(topic_id)
+            writeString(vkWallPostId)
+            writeTypedList(copy_history)
+        }
     }
 
     override fun describeContents(): Int {
@@ -61,24 +64,46 @@ data class VKWallPostModel(
         }
 
         fun parse(json: JSONObject): VKWallPostModel {
-            val attachments = if (json.optJSONArray("attachments") != null) List(
-                json.getJSONArray("attachments").length()
-            ) {
-                VKAttachments.parse(
-                    json.getJSONArray(
-                        "attachments"
-                    )[it] as JSONObject
-                )
-            } as ArrayList<VKAttachments> else ArrayList()
+            val copyHistoryJson = json.optJSONArray("copy_history")
+            val copyHistory = if (copyHistoryJson != null) List(copyHistoryJson.length()) {
+                parseCopyHistory(copyHistoryJson[it] as JSONObject)
+            } else null
+
             return VKWallPostModel(
-                json.getInt("post_id"),
-                json.getInt("source_id"),
-                json.getLong("date"),
-                json.getString("text"),
-                json.optInt("reply_post_id", 0),
-                attachments,
-                json.optInt("topic_id", -1)
+                post_id = json.getInt("post_id"),
+                source_id = json.getInt("source_id"),
+                date = json.getLong("date"),
+                text = json.getString("text"),
+                attachments = getAttachments(json),
+                topic_id = json.optInt("topic_id", -1),
+                copy_history = copyHistory as ArrayList<VKWallPostModel>?
             )
+        }
+
+        private fun parseCopyHistory(json: JSONObject) = VKWallPostModel(
+            post_id = json.getInt("id"),
+            source_id = json.getInt("owner_id"),
+            date = json.getLong("date"),
+            text = json.getString("text"),
+            attachments = getAttachments(json)
+        )
+
+        fun parseSearchWallPost(json: JSONObject): VKWallPostModel {
+            // TODO репосты и упрощённый вид parseCopyHistory???
+            return VKWallPostModel(
+                post_id = json.getInt("id"),
+                source_id = json.getInt("owner_id"),
+                date = json.getLong("date"),
+                text = json.getString("text"),
+                attachments = getAttachments(json)
+            )
+        }
+
+        private fun getAttachments(json: JSONObject): ArrayList<VKAttachments>? {
+            val attachmentsJson = json.optJSONArray("attachments")
+            return (if (attachmentsJson != null) List(attachmentsJson.length()) {
+                VKAttachments.parse(attachmentsJson[it] as JSONObject)
+            } else null) as ArrayList<VKAttachments>?
         }
     }
 }

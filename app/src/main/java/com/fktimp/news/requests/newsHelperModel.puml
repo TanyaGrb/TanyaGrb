@@ -1,0 +1,35 @@
+@startuml
+
+class NewsHelper {
+    + SOURCE_SET: Sting
+    + STOP: Sting
+    + defaultSources: Array<Sting>
+    + actualSources: Set<Sting>
+    + next_from_news: Sting
+    + next_from_search: Sting
+    + newsAtOnce: Int
+    + clearNext(Next)
+    + isAllNews(): Boolean
+    + isAllNewsSearch(): Boolean
+    + saveDefaultSources(Context)
+    + deleteAllSources(Context)
+    + saveStringSet(Context, HashSet<String>)
+    + getSavedStringSets(Context)
+    + getNewsData(NewsHelperInterface)
+    + getSearchNews(NewsHelperInterface)
+
+}
+interface NewsHelperInterface {
+    + onDeleteLoad()
+    + showToast(text: String)
+    + onNewData(items: List<VKWallPostModel>, srcInfo: List<VKSourceModel>)
+    + onError()
+}
+enum Next{
+    NEWS
+    SEARCH
+}
+
+Next --> NewsHelper
+NewsHelperInterface --> NewsHelper
+@enduml

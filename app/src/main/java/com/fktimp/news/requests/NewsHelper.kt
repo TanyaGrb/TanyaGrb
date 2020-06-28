@@ -3,7 +3,8 @@ package com.fktimp.news.requests
 import android.content.Context
 import android.util.Log
 import com.fktimp.news.NewsHelperInterface
-import com.fktimp.news.models.*
+import com.fktimp.news.models.VKNewsModel
+import com.fktimp.news.models.VKSearchModel
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
 
@@ -18,8 +19,11 @@ object NewsHelper {
             "-88384060",
             "-91150385",
             "-940543",
-            "-192270804",
-            "-28905875"
+            "-166881",
+            "-97723620",
+            "-167371392"
+//            "-192270804", ТГ1
+//            "-28905875" РИП
         )
     lateinit var actualSources: Set<String>
     var next_from_news: String = ""
@@ -100,7 +104,7 @@ object NewsHelper {
                         if (result.next_from.isBlank())
                             STOP
                         else result.next_from
-                    listener.onNewData(result.items, result.groups)
+                    listener.onNewData(result.items, result.sources)
                 }
             })
     }
@@ -122,24 +126,9 @@ object NewsHelper {
 
                 override fun success(result: VKSearchModel) {
                     next_from_search = if (result.next_from.isBlank()) STOP else result.next_from
-                    val srcInfo = ArrayList<VKGroupModel>()
-                    result.profiles?.let {
-                        it.forEach { profile ->
-                            srcInfo.add(VKProfileSearch.toVKGroupModel(profile))
-                        }
-                    }
-                    result.groups?.let {
-                        it.forEach { group ->
-                            srcInfo.add(VKGroupsSearch.toVKGroupModel(group))
-                        }
-                    }
-                    listener.onNewData(
-                        List(result.items.size) { VKSearchNewsModel.toVKWallPostModel(result.items[it]) },
-                        srcInfo
-                    )
+                    listener.onNewData(result.items, result.sources)
                 }
             }
         )
     }
-
 }

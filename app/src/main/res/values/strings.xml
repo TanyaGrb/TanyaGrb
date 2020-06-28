@@ -15,10 +15,12 @@
     <string name="group_title_example">Название группы</string>
     <string name="post_date_example">14 апреля 12:34</string>
     <string name="post_text_example">Полёты рыб в космосе — серия биологических экспериментов над рыбами, проводимых на орбите Земли. Это часть экспериментов с животными в космосе, основная задача, которых определить влияние факторов космического полёта на рост, развитие, адаптацию, поведение живых организмов</string>
+    <string name="post_text_example2">Какаове́лла — оболочка шелухи бобов какао; является побочным продуктом производства какао тёртого. Частый спутник очень дешевого какао, например "Простой выбор"</string>
     <string name="link_title_example">Заголовок ссылки</string>
     <string name="link_caption_example">example.com</string>
     <string name="saved_wall_posts">Сохранённые записи</string>
     <string name="search">Поиск</string>
     <string name="not_found_icon">not_found_icon</string>
+    <string name="repost_icon">repost_icon</string>
     <!---->
 </resources>

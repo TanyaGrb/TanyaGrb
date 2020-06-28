@@ -19,7 +19,7 @@ import com.fktimp.news.adapters.OnSaveWallPostClickListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
 import com.fktimp.news.fragments.GroupPickBottomSheet
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.models.database.AppDatabase
 import com.fktimp.news.models.database.VKDao
@@ -34,13 +34,13 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
     NewsHelperInterface {
 
     private val allWallPosts: ArrayList<VKWallPostModel> = ArrayList()
-    private val srcInfo: ArrayList<VKGroupModel> = ArrayList()
+    private val srcInfo: ArrayList<VKSourceModel> = ArrayList()
     private val pickedCategories: ArrayList<Int> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
     private val filteredWallPost: ArrayList<VKWallPostModel?> = ArrayList()
-    lateinit var db: AppDatabase
-    lateinit var vkDao: VKDao
+    private lateinit var db: AppDatabase
+    private lateinit var vkDao: VKDao
     private val handler: Handler = Handler()
     private var runnable: Runnable? = null
     private val TAG = "MainActivityNK@("
@@ -177,9 +177,6 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.menu_change_sources -> {
             GroupPickBottomSheet().show(supportFragmentManager, "Choose groups")
-            Thread {
-                Log.d(TAG, vkDao.getAllSavedWallPosts().toString())
-            }.start()
             true
         }
         R.id.saved -> {
@@ -214,7 +211,6 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
             insertInDb(wallPost)
         else
             deleteFromDb(wallPost)
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -243,7 +239,7 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
 
     override fun onNewData(
         items: List<VKWallPostModel>,
-        srcInfo: List<VKGroupModel>
+        srcInfo: List<VKSourceModel>
     ) {
         Log.d("M_MainActivity", "onNewData")
         deleteLoading()
@@ -279,6 +275,7 @@ class MainActivity : AppCompatActivity(), OnSaveWallPostClickListener,
     private fun isAllNewsGot(needToUpdate: Boolean = false) {
         if ((filteredWallPost.size < NewsHelper.newsAtOnce || needToUpdate) && !NewsHelper.isAllNews()) {
             scrollListener.callOnLoadMore()
+            // TODO нужно ли?
             scrollListener.isLoading = true
         } else if (NewsHelper.isAllNews())
             onLastPage()

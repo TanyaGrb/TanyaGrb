@@ -8,7 +8,7 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.fktimp.news.R
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import kotlinx.android.synthetic.main.group_info_item.view.*
 
 class GroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -16,22 +16,22 @@ class GroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val groupTitleTextView: CheckedTextView = itemView.group_title_text_view
 
 
-    fun bind(group: VKGroupModel) {
+    fun bind(source: VKSourceModel) {
         Glide.with(itemView.context)
-            .load(group.photo_100)
+            .load(source.photo_100)
             .circleCrop()
             .into(photoImageView)
-        groupTitleTextView.text = group.name
-        groupTitleTextView.isChecked = group.isPicked ?: false
+        groupTitleTextView.text = source.name
+        groupTitleTextView.isChecked = source.isPicked ?: false
 
         itemView.setOnClickListener {
             groupTitleTextView.isChecked = !groupTitleTextView.isChecked
-            group.isPicked = groupTitleTextView.isChecked
+            source.isPicked = groupTitleTextView.isChecked
         }
     }
 }
 
-open class GroupAdapter(val groupList: List<VKGroupModel>) :
+open class GroupAdapter(val sourceList: List<VKSourceModel>) :
     RecyclerView.Adapter<GroupViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         return GroupViewHolder(
@@ -39,10 +39,10 @@ open class GroupAdapter(val groupList: List<VKGroupModel>) :
         )
     }
 
-    override fun getItemCount(): Int = groupList.size
+    override fun getItemCount(): Int = sourceList.size
 
 
     override fun onBindViewHolder(holder: GroupViewHolder, position: Int) {
-        holder.bind(groupList[position])
+        holder.bind(sourceList[position])
     }
 }

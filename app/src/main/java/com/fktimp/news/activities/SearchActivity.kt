@@ -16,7 +16,7 @@ import com.fktimp.news.adapters.OnSaveWallPostClickListener
 import com.fktimp.news.adapters.RecyclerViewLoadMoreScroll
 import com.fktimp.news.adapters.WallAdapter
 import com.fktimp.news.custom.DelayedOnQueryTextListener
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.models.database.AppDatabase
 import com.fktimp.news.models.database.VKDao
@@ -26,7 +26,7 @@ import kotlin.math.abs
 
 class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHelperInterface {
     private val allWallPosts: ArrayList<VKWallPostModel?> = ArrayList()
-    private val srcInfo: ArrayList<VKGroupModel> = ArrayList()
+    private val srcInfo: ArrayList<VKSourceModel> = ArrayList()
     lateinit var adapter: WallAdapter
     lateinit var scrollListener: RecyclerViewLoadMoreScroll
     private val handler: Handler = Handler()
@@ -99,7 +99,7 @@ class SearchActivity : AppCompatActivity(), OnSaveWallPostClickListener, NewsHel
     override fun showToast(text: String) = Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
 
 
-    override fun onNewData(items: List<VKWallPostModel>, srcInfo: List<VKGroupModel>) {
+    override fun onNewData(items: List<VKWallPostModel>, srcInfo: List<VKSourceModel>) {
         Log.d("M_SearchActivity", "onNewData")
         deleteLoading()
         Thread {

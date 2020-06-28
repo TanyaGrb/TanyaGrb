@@ -14,7 +14,7 @@ import com.vk.api.sdk.auth.VKScope
 class WelcomeActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (this.getSharedPreferences(
+        if (getSharedPreferences(
                 NewsHelper.SOURCE_SET,
                 Context.MODE_PRIVATE
             ).getStringSet(NewsHelper.SOURCE_SET, null) == null

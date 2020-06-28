@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.fktimp.news.R
 import com.fktimp.news.adapters.OnSaveWallPostClickListener
 import com.fktimp.news.adapters.WallAdapter
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import com.fktimp.news.models.VKWallPostModel
 import com.fktimp.news.models.database.AppDatabase
 import com.fktimp.news.models.database.VKDao
@@ -19,16 +19,17 @@ class SavedWallPostActivity : AppCompatActivity(), OnSaveWallPostClickListener {
     private lateinit var vkDao: VKDao
     private val wallPosts: ArrayList<VKWallPostModel> = ArrayList()
     private lateinit var wallAdapter: WallAdapter
-    private val groupsInfo: ArrayList<VKGroupModel> = ArrayList()
+    private val groupsInfo: ArrayList<VKSourceModel> = ArrayList()
     private val deletedPosts: ArrayList<Int> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_saved_wall_post)
         setSupportActionBar(toolbar)
+        // TODO убрать лишнее
         actionBar?.title = "Сохранённые записи"
         supportActionBar?.title = "Сохранённые записи"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        actionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         db = (applicationContext as VKApplication).getDb()
         vkDao = db.getDao()

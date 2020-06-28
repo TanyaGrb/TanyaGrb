@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.fktimp.news.R
 import com.fktimp.news.activities.MainActivity
 import com.fktimp.news.adapters.GroupAdapter
-import com.fktimp.news.models.VKGroupModel
+import com.fktimp.news.models.VKSourceModel
 import com.fktimp.news.requests.NewsHelper
 import com.fktimp.news.requests.VKGroupsById
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -47,7 +47,7 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState?.getParcelableArrayList<VKGroupModel>("groupList") != null) {
+        if (savedInstanceState?.getParcelableArrayList<VKSourceModel>("groupList") != null) {
             adapter = GroupAdapter(savedInstanceState.getParcelableArrayList("groupList")!!)
         } else {
             getData(group_recyclerview.context)
@@ -79,8 +79,8 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
         val allSources = NewsHelper.defaultSources.map { it.substring(1) } + picked
         allSources.distinct()
         VK.execute(VKGroupsById(allSources.joinToString(", ")), object :
-            VKApiCallback<List<VKGroupModel>> {
-            override fun success(result: List<VKGroupModel>) {
+            VKApiCallback<List<VKSourceModel>> {
+            override fun success(result: List<VKSourceModel>) {
                 for (group in picked) {
                     result.find { it.id.toString() == group }?.isPicked = true
                 }
@@ -94,7 +94,7 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
     }
 
 
-    fun setData(data: List<VKGroupModel>) {
+    fun setData(data: List<VKSourceModel>) {
         adapter = GroupAdapter(data)
         group_recyclerview.adapter = adapter
         group_recyclerview.addItemDecoration(
@@ -108,7 +108,7 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         this.context?.let {
-            val current = adapter.groupList.asSequence().filter { model -> model.isPicked == true }
+            val current = adapter.sourceList.asSequence().filter { model -> model.isPicked == true }
                 .map { model -> "-${model.id}" }.toHashSet()
             if (current != NewsHelper.getSavedStringSets(it)) {
                 NewsHelper.deleteAllSources(it)
@@ -123,6 +123,6 @@ class GroupPickBottomSheet : BottomSheetDialogFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelableArrayList("groupList", adapter.groupList as ArrayList<out Parcelable>)
+        outState.putParcelableArrayList("groupList", adapter.sourceList as ArrayList<out Parcelable>)
     }
 }

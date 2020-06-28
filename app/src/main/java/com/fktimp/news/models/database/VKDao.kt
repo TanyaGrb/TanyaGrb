@@ -7,18 +7,18 @@ import kotlin.math.abs
 @Dao
 interface VKDao {
 
+    @Transaction
     @Query("select * from vkwallpostmodel")
     fun getAllSavedWallPosts(): List<VKWallPostAndAttachments>
 
-
-    @Query("select * from vkgroupmodel")
-    fun getGroupInfo(): List<VKGroupModel>
+    @Query("select * from vksourcemodel")
+    fun getGroupInfo(): List<VKSourceModel>
 
     @Query("select source_id from vkwallpostmodel")
     fun getSavedGroupsId(): List<Int>
 
-    @Query("select * from vkgroupmodel where id==:passedId")
-    fun getGroupInfoById(passedId: Int): VKGroupModel
+    @Query("select * from vksourcemodel where id==:passedId")
+    fun getGroupInfoById(passedId: Int): VKSourceModel
 
     @Query("select vkWallPostId from vkwallpostmodel")
     fun getSavedWallPostIds(): List<String>
@@ -30,7 +30,7 @@ interface VKDao {
     fun insert(vkAttachments: VKAttachments)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(vkGroupModel: VKGroupModel)
+    fun insert(vkSourceModel: VKSourceModel)
 
     @Insert
     fun insert(photo: VKSize)
@@ -65,7 +65,7 @@ interface VKDao {
 
 
     @Transaction
-    fun insertWallPost(wallPost: VKWallPostModel, vkGroupModel: VKGroupModel?) {
+    fun insertWallPost(wallPost: VKWallPostModel, vkSourceModel: VKSourceModel?) {
         insert(wallPost)
         insertAttachments(wallPost.attachments, wallPost.vkWallPostId)
         if (wallPost.attachments != null)
@@ -73,8 +73,8 @@ interface VKDao {
                 insertPhoto(att.photo, wallPost.vkWallPostId)
                 insertLink(att.link, wallPost.vkWallPostId)
             }
-        if (vkGroupModel != null)
-            insert(vkGroupModel)
+        if (vkSourceModel != null)
+            insert(vkSourceModel)
     }
 
     @Delete
@@ -89,7 +89,7 @@ interface VKDao {
 
 
     @Delete
-    fun deleteGroup(group: VKGroupModel)
+    fun deleteGroup(source: VKSourceModel)
 
     fun deleteGroupById(id: Int) {
         deleteGroup(getGroupInfoById(abs(id)))

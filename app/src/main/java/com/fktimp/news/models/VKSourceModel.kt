@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 import org.json.JSONObject
 
 @Entity
-data class VKGroupModel(
+data class VKSourceModel(
     @PrimaryKey
     val id: Int,
     val name: String,
@@ -31,17 +31,23 @@ data class VKGroupModel(
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<VKGroupModel> {
-        override fun createFromParcel(parcel: Parcel): VKGroupModel {
-            return VKGroupModel(parcel)
+    companion object CREATOR : Parcelable.Creator<VKSourceModel> {
+        override fun createFromParcel(parcel: Parcel): VKSourceModel {
+            return VKSourceModel(parcel)
         }
 
-        override fun newArray(size: Int): Array<VKGroupModel?> {
+        override fun newArray(size: Int): Array<VKSourceModel?> {
             return arrayOfNulls(size)
         }
 
-        fun parse(json: JSONObject) =
-            VKGroupModel(json.getInt("id"), json.getString("name"), json.getString("photo_100"))
+        fun parseGroup(json: JSONObject) =
+            VKSourceModel(json.getInt("id"), json.getString("name"), json.getString("photo_100"))
+
+        fun parseProfile(json: JSONObject) = VKSourceModel(
+            id = json.getInt("id"),
+            name = "${json.getString("first_name")} ${json.getString("last_name")}",
+            photo_100 = json.getString("photo_100")
+        )
     }
 
 

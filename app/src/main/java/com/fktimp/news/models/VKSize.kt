@@ -2,6 +2,7 @@ package com.fktimp.news.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -23,6 +24,7 @@ data class VKSize(
     var height: Int = 0,
     @PrimaryKey(autoGenerate = true)
     var sizeId: Int,
+    @ColumnInfo(index = true)
     var wallParentSize: String = ""
 
 ) : Parcelable {

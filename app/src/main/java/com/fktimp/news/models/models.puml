@@ -13,14 +13,17 @@ class VKAttachments {
     + link: VKLink?
     + attachmentId: Int
     + wallParentAttachments: Int
+    + parse(JSONObject): VKAttachments
 }
 
 
-class VKGroupModel {
+class VKSourceModel {
     + id: Int
     + name: String
     + photo_100: String
-    + isPicked: Boolean?
+    + VKSourceModel
+    + parseGroup(JSONObject): VKSourceModel
+    + parseProfile(JSONObject): VKSourceModel
 }
 
 class VKLink {
@@ -30,12 +33,17 @@ class VKLink {
     + photo: List<VKSize>?
     + linkId: Int
     + wallParentLink: Int
+    + parse(JSONObject): VKLink
 }
 
 class VKNewsModel {
     + items: ArrayList<VKWallPostModel>
-    + groups: ArrayList<VKGroupModel>
+    + sources: ArrayList<VKSourceModel>
     + next_from: String?
+    + parse(JSONObject): VKNewsModel
+    + parseCopyHistory(JSONObject): VKNewsModel
+    + parseSearchWallPost(JSONObject): VKNewsModel
+    - getAttachments(JSONObject): ArrayList<VKAttachments>?
 }
 
 class VKSize {
@@ -45,6 +53,7 @@ class VKSize {
     + height: Int
     + sizeId: Int
     + wallParentSize: Int
+    + parse(JSONObject): VKSize
 }
 
 
@@ -59,19 +68,31 @@ class VKWallPostModel {
     + isSaved: Boolean
 }
 
+class VKSearchModel{
+    + items: ArrayList<VKWallPostModel>
+    + sources: List<VKSourceModel>
+    + next_from: String
+    + total_count: Int
+    + parse(JSONObject): VKSearchModel
+}
+
+
 
 VKLink --left> VKAttachments
-VKGroupModel --o VKNewsModel
+VKSourceModel --o VKNewsModel
 VKWallPostModel --o VKNewsModel
 VKSize --o VKLink
 VKSize --o VKAttachments
 VKAttachments --o VKWallPostModel
 
 VKAttachments ..|> Parcelable
-VKGroupModel ..|> Parcelable
+VKSourceModel ..|> Parcelable
 VKLink ..|> Parcelable
 VKNewsModel ..|> Parcelable
 VKWallPostModel ..left|> Parcelable
 VKSize ..|> Parcelable
+
+VKWallPostModel --o VKSearchModel
+VKSourceModel --o VKSearchModel
 
 @enduml
